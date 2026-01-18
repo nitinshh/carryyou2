@@ -9,11 +9,9 @@ const helper = require("../helpers/validation.js");
 const Models = require("../models/index");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const crypto = require("crypto");
-const Response = require("../config/responses.js")
-
+const Response = require("../config/responses.js");
 
 module.exports = {
-
   signUp: async (req, res) => {
     try {
       const schema = Joi.object().keys({
@@ -61,7 +59,7 @@ module.exports = {
       if (req.files || req.files.profilePicture) {
         image = await commonHelper.fileUpload(
           req.files.profilePicture,
-          "images"
+          "images",
         );
       }
 
@@ -77,7 +75,7 @@ module.exports = {
         role: payload.role,
         password: await commonHelper.bcryptData(
           payload.password,
-          process.env.SALT
+          process.env.SALT,
         ),
         countryCode: payload.countryCode,
         phoneNumber: payload.phoneNumber,
@@ -113,7 +111,7 @@ module.exports = {
           id: newUser.id,
           email: newUser.email,
         },
-        secretKey
+        secretKey,
       );
 
       let userDetail = await Models.userModel.findOne({
@@ -123,21 +121,16 @@ module.exports = {
 
       userDetail.token = token;
 
-      return commonHelper.success(
-        res,
-        Response.success_msg.signUp,
-        userDetail
-      );
+      return commonHelper.success(res, Response.success_msg.signUp, userDetail);
     } catch (error) {
       console.error("Error during signup:", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
-        error.message
+        error.message,
       );
     }
   },
-
 
   login: async (req, res) => {
     try {
@@ -179,13 +172,13 @@ module.exports = {
         {
           deviceToken: payload.deviceToken,
           deviceType: payload.deviceType,
-          customerId: customerId
+          customerId: customerId,
         },
         {
           where: {
             id: user.id,
           },
-        }
+        },
       );
       let userDetail = await Models.userModel.findOne({
         where: { email: email },
@@ -196,7 +189,7 @@ module.exports = {
           id: user.id,
           email: user.email,
         },
-        secretKey
+        secretKey,
       );
       userDetail.token = token;
 
@@ -267,12 +260,12 @@ module.exports = {
 
       const hashedNewPassword = await commonHelper.bcryptData(
         newPassword,
-        process.env.SALT
+        process.env.SALT,
       );
 
       await Models.userModel.update(
         { password: hashedNewPassword },
-        { where: { email: req.body.email } }
+        { where: { email: req.body.email } },
       );
 
       return commonHelper.success(res, Response.success_msg.passwordUpdate);
@@ -281,7 +274,7 @@ module.exports = {
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -328,14 +321,14 @@ module.exports = {
       return commonHelper.success(
         res,
         Response.success_msg.updateProfile,
-        updatedUser
+        updatedUser,
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -352,7 +345,7 @@ module.exports = {
 
       const isPasswordValid = await bcrypt.compare(
         currentPassword,
-        req.user.password
+        req.user.password,
       );
 
       if (!isPasswordValid) {
@@ -361,12 +354,12 @@ module.exports = {
 
       const hashedNewPassword = await commonHelper.bcryptData(
         newPassword,
-        process.env.SALT
+        process.env.SALT,
       );
 
       await Models.userModel.update(
         { password: hashedNewPassword },
-        { where: { id: req.user.id } }
+        { where: { id: req.user.id } },
       );
 
       return commonHelper.success(res, Response.success_msg.passwordUpdate);
@@ -375,94 +368,87 @@ module.exports = {
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
-        error.message
+        error.message,
       );
     }
   },
 
-otpVerify: async (req, res) => {
-  try {
-    const schema = Joi.object({
-      countryCode: Joi.string().required(),
-      phoneNumber: Joi.string()
-        .pattern(/^[0-9]{10}$/)
-        .required()
-        .messages({
-          "string.pattern.base":
-            "The phone number must be exactly 10 digits.",
-        }),
-      otp: Joi.string().required(),
-    });
+  otpVerify: async (req, res) => {
+    try {
+      const schema = Joi.object({
+        countryCode: Joi.string().required(),
+        phoneNumber: Joi.string()
+          .pattern(/^[0-9]{10}$/)
+          .required()
+          .messages({
+            "string.pattern.base":
+              "The phone number must be exactly 10 digits.",
+          }),
+        otp: Joi.string().required(),
+      });
 
-    const payload = await helper.validationJoi(req.body, schema);
-    const { countryCode, phoneNumber, otp } = payload;
+      const payload = await helper.validationJoi(req.body, schema);
+      const { countryCode, phoneNumber, otp } = payload;
 
-    // static OTP for now
-    const STATIC_OTP = "1111";
+      // static OTP for now
+      const STATIC_OTP = "1111";
 
-    const user = await Models.userModel.findOne({
-      where: {
-        countryCode,
-        phoneNumber,
-      },
-      raw: true,
-    });
+      const user = await Models.userModel.findOne({
+        where: {
+          countryCode,
+          phoneNumber,
+        },
+        raw: true,
+      });
 
-    if (!user) {
-      return commonHelper.failed(
+      if (!user) {
+        return commonHelper.failed(res, Response.failed_msg.userNotFound);
+      }
+
+      if (otp !== STATIC_OTP) {
+        return commonHelper.failed(res, Response.failed_msg.invalidOtp);
+      }
+
+      // mark OTP as verified & activate user
+      await Models.userModel.update(
+        {
+          isOtpVerified: 1,
+          status: 1,
+        },
+        { where: { id: user.id } },
+      );
+
+      // generate token (same as login)
+      const token = jwt.sign(
+        {
+          id: user.id,
+          phoneNumber: user.phoneNumber,
+        },
+        secretKey,
+      );
+
+      // fetch updated user
+      let updatedUser = await Models.userModel.findOne({
+        where: { id: user.id },
+        raw: true,
+      });
+
+      updatedUser.token = token;
+
+      return commonHelper.success(
         res,
-        Response.failed_msg.userNotFound
+        Response.success_msg.otpVerify,
+        updatedUser,
+      );
+    } catch (error) {
+      console.log("OTP verify error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
       );
     }
-
-    if (otp !== STATIC_OTP) {
-      return commonHelper.failed(
-        res,
-        Response.failed_msg.invalidOtp
-      );
-    }
-
-    // mark OTP as verified & activate user
-    await Models.userModel.update(
-      {
-        isOtpVerified: 1,
-        status: 1,
-      },
-      { where: { id: user.id } }
-    );
-
-    // generate token (same as login)
-    const token = jwt.sign(
-      {
-        id: user.id,
-        phoneNumber: user.phoneNumber,
-      },
-      secretKey
-    );
-
-    // fetch updated user
-    let updatedUser = await Models.userModel.findOne({
-      where: { id: user.id },
-      raw: true,
-    });
-
-    updatedUser.token = token;
-
-    return commonHelper.success(
-      res,
-      Response.success_msg.otpVerify,
-      updatedUser
-    );
-
-  } catch (error) {
-    console.log("OTP verify error:", error);
-    return commonHelper.error(
-      res,
-      Response.error_msg.intSerErr,
-      error.message
-    );
-  }
-},
+  },
 
   resendOtp: async (req, res) => {
     try {
@@ -504,7 +490,7 @@ otpVerify: async (req, res) => {
         {
           otpVerify: 0,
         },
-        { where: { id: user.id } }
+        { where: { id: user.id } },
       );
 
       /* =======================
@@ -532,7 +518,7 @@ otpVerify: async (req, res) => {
       return commonHelper.error(
         res,
         Response.error_msg.otpResErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -550,7 +536,7 @@ otpVerify: async (req, res) => {
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -568,7 +554,7 @@ otpVerify: async (req, res) => {
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -588,14 +574,14 @@ otpVerify: async (req, res) => {
       return commonHelper.success(
         res,
         Response.success_msg.userDetail,
-        response
+        response,
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -603,67 +589,17 @@ otpVerify: async (req, res) => {
   cms: async (req, res) => {
     try {
       // fetch cms by type
-      const cmsData = await Models.cmsModel.findOne({
+      const response = await Models.cmsModel.findOne({
         where: { type: req.body.type },
         raw: true,
       });
-
-      if (!cmsData) {
-        return commonHelper.failed(res, Response.failed_msg.noDataFound);
-      }
-
-      // fetch user language
-      const user = await Models.userModel.findOne({
-        where: { id: req.user.id },
-        attributes: ["language"],
-        raw: true,
-      });
-
-      const language = user?.language ?? 0;
-
-      // language mapping
-      let title, description;
-
-      switch (language) {
-        case 1:
-          title = cmsData.titleInFinnish;
-          description = cmsData.descriptionInFinnish;
-          break;
-        case 2:
-          title = cmsData.titleInRussian;
-          description = cmsData.descriptionInRussian;
-          break;
-        case 3:
-          title = cmsData.titleInSwedish;
-          description = cmsData.descriptionInSwedish;
-          break;
-        case 4:
-          title = cmsData.titleInUkrainian;
-          description = cmsData.descriptionInUkrainian;
-          break;
-        case 0:
-        default:
-          title = cmsData.titleInEnglish;
-          description = cmsData.descriptionInEnglish;
-          break;
-      }
-
-      // final response
-      const response = {
-        id: cmsData.id,
-        type: cmsData.type,
-        title,
-        description,
-      };
-
       return commonHelper.success(res, Response.success_msg.cms, response);
-
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -681,37 +617,37 @@ otpVerify: async (req, res) => {
       });
       return commonHelper.success(
         res,
-        Response.success_msg.notificationStatusChange
+        Response.success_msg.notificationStatusChange,
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
-        error.message
+        error.message,
       );
     }
   },
 
   isOnlineStatusChange: async (req, res) => {
     try {
-      await Models.userModel.update({
-        isOnline: req.body.isOnline
-      }, {
-        where: {
-          id: req.user.id
-        }
-      });
-      return commonHelper.success(
-        res,
-        Response.success_msg.onlineStatusChange,
+      await Models.userModel.update(
+        {
+          isOnline: req.body.isOnline,
+        },
+        {
+          where: {
+            id: req.user.id,
+          },
+        },
       );
+      return commonHelper.success(res, Response.success_msg.onlineStatusChange);
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -725,7 +661,7 @@ otpVerify: async (req, res) => {
       return commonHelper.success(
         res,
         "Stripe sk and pk list get successfully",
-        response
+        response,
       );
     } catch (error) {
       console.log("error", error);
@@ -740,8 +676,8 @@ otpVerify: async (req, res) => {
       const { totalAmount, orderId, paymentMethod } = req.body;
       const amountInCents = Math.round(Number(totalAmount) * 100);
 
-      const isCard = paymentMethod === 0;       // PaymentSheet
-      const isGooglePay = paymentMethod === 2;  // PlatformPay (Google Pay)
+      const isCard = paymentMethod === 0; // PaymentSheet
+      const isGooglePay = paymentMethod === 2; // PlatformPay (Google Pay)
 
       let customerId = null;
       let ephemeralKey = null;
@@ -768,7 +704,7 @@ otpVerify: async (req, res) => {
 
           await Models.userModel.update(
             { customerId },
-            { where: { id: req.user.id } }
+            { where: { id: req.user.id } },
           );
         } else {
           customerId = userDetail.customerId;
@@ -777,7 +713,7 @@ otpVerify: async (req, res) => {
         // Ephemeral key ONLY for PaymentSheet
         ephemeralKey = await stripe.ephemeralKeys.create(
           { customer: customerId },
-          { apiVersion: "2023-10-16" }
+          { apiVersion: "2023-10-16" },
         );
       }
 
@@ -813,9 +749,8 @@ otpVerify: async (req, res) => {
 
       console.log("💳 Creating PaymentIntent with:", paymentIntentParams);
 
-      const paymentIntent = await stripe.paymentIntents.create(
-        paymentIntentParams
-      );
+      const paymentIntent =
+        await stripe.paymentIntents.create(paymentIntentParams);
 
       console.log("✅ PaymentIntent created:", paymentIntent.id);
 
@@ -842,14 +777,13 @@ otpVerify: async (req, res) => {
         transactionId: paymentIntent.id,
         publishableKey: process.env.STRIPE_PUBLIC_KEY,
       });
-
     } catch (error) {
       console.error("❌ stripeIntent error:", error);
 
       return commonHelper.error(
         res,
         "Stripe intent error",
-        error.message || "Failed to create PaymentIntent"
+        error.message || "Failed to create PaymentIntent",
       );
     }
   },
@@ -883,9 +817,14 @@ otpVerify: async (req, res) => {
       });
 
       if (!transaction) {
-        console.log("❌ Transaction not found for PaymentIntent:", paymentIntentId);
+        console.log(
+          "❌ Transaction not found for PaymentIntent:",
+          paymentIntentId,
+        );
         // For webhooks it's usually better to return 200 so Stripe stops retrying
-        return res.status(200).json({ received: true, message: "Transaction not found" });
+        return res
+          .status(200)
+          .json({ received: true, message: "Transaction not found" });
       }
 
       // (Optional) you don't really need to retrieve again, but if you want:
@@ -895,7 +834,7 @@ otpVerify: async (req, res) => {
       // ✅ Mark transaction as paid
       await Models.transactionModel.update(
         { paymentStatus: 1 },
-        { where: { transactionId: paymentIntentId } }
+        { where: { transactionId: paymentIntentId } },
       );
 
       // ✅ Update order
@@ -904,7 +843,7 @@ otpVerify: async (req, res) => {
           status: 0,
           isOrderComplete: 1,
         },
-        { where: { id: transaction.orderId } }
+        { where: { id: transaction.orderId } },
       );
 
       // ✅ Clear cart
@@ -948,5 +887,4 @@ otpVerify: async (req, res) => {
       return res.status(500).send("Webhook error");
     }
   },
-
 };
