@@ -11,7 +11,6 @@ const cors = require('cors')
 
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/userRoute")();
-const driverRouter = require("./routes/driverRoute")();
 const { connectdb } = require("./dbConnection");
 
 const app = express();
@@ -61,7 +60,6 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(null, swaggerOptions));
 // Routes
 app.use("/", indexRouter);
 // app.use("/users", usersRouter);
-// app.use("/driver", driverRouter);
 
 // 404 Handler
 app.use((req, res, next) => next(createError(404)));
