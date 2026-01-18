@@ -53,6 +53,7 @@ var failed_msg = {
   userNotFound: "User not found",
   invalidCrd:"Invalid Credentials",
   accNotAppoved:"Account not approved yet.Please wait",
+  accReject:"Account is rejected",
   invalidPassword: "Invalid password",
   noAccWEmail: "No account exists with this email",
   pwdNoMatch: "Passwords do not match!",
