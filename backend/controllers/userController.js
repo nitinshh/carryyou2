@@ -990,7 +990,18 @@ module.exports = {
     }
   },
 
-  bookingAcceptReject:async(req,res)=>{},
+  bookingAcceptReject:async(req,res)=>{
+    try {
+      if(req.body.status==1){}
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );      
+    }
+  },
 
   calculate_price: async (req, res) => {
     try {
