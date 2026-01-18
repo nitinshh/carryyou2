@@ -362,18 +362,15 @@ module.exports = {
   updateProfile: async (req, res) => {
     try {
       let image = null;
-
-      // Upload image if provided
-      if (req.files && req.files.image) {
-        image = await commonHelper.fileUpload(req.files.image, "images");
+      if (req.files && req.files.profilePicture) {
+        image = await commonHelper.fileUpload(
+          req.files.profilePicture,
+          "images",
+        );
       }
 
       // Preserve existing profile picture unless removed or updated
       let profilePicture = req.user.profilePicture;
-
-      if (req.body && req.body.removeImage === "true") {
-        profilePicture = null;
-      }
 
       if (image) {
         profilePicture = image;
@@ -382,9 +379,9 @@ module.exports = {
       // Prepare object to update
       const objToSave = {
         fullName: req.body.fullName,
-        profilePicture,
-        phoneNumber: req.body.phoneNumber || null,
-        countryCode: req.body.countryCode || null,
+        profilePicture:image?image:profilePicture,
+        phoneNumber: req.body.phoneNumber,
+        countryCode: req.body.countryCode,
       };
 
       await Models.userModel.update(objToSave, {
