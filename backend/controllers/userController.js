@@ -9,6 +9,7 @@ const helper = require("../helpers/validation.js");
 const Models = require("../models/index");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const crypto = require("crypto");
+const Response=require("../config/responses.js")
 
 
 module.exports = {
@@ -21,12 +22,12 @@ module.exports = {
       });
       return commonHelper.success(
         res,
-        req.msg.success_msg.userDetail,
+        Response.success_msg.userDetail,
         response
       );
     } catch (error) {
       console.error("Error during login:", err);
-      return commonHelper.error(res, req.msg.error_msg.intSerErr, err.message);
+      return commonHelper.error(res, Response.error_msg.intSerErr, err.message);
     }
   },
 
@@ -51,7 +52,7 @@ module.exports = {
         raw: true,
       });
       if (user && role == user.role) {
-        return commonHelper.failed(res, req.msg.failed_msg.userWithEmail);
+        return commonHelper.failed(res, Response.failed_msg.userWithEmail);
       }
 
       let customerId = null;
@@ -91,12 +92,12 @@ module.exports = {
         raw: true,
       });
       userDetail.token = token;
-      return commonHelper.success(res, req.msg.success_msg.signUp, userDetail);
+      return commonHelper.success(res, Response.success_msg.signUp, userDetail);
     } catch (error) {
       console.error("Error during login:", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -122,13 +123,13 @@ module.exports = {
       });
 
       if (!user) {
-        return commonHelper.failed(res, req.msg.failed_msg.invalidCrd);
+        return commonHelper.failed(res, Response.failed_msg.invalidCrd);
       }
 
       const isPasswordValid = await bcrypt.compare(password, user.password);
 
       if (!isPasswordValid) {
-        return commonHelper.failed(res, req.msg.failed_msg.invalidPassword);
+        return commonHelper.failed(res, Response.failed_msg.invalidPassword);
       }
       let customerId = user.customerId;
       if (user.customerId == null) {
@@ -166,10 +167,10 @@ module.exports = {
       );
       userDetail.token = token;
 
-      return commonHelper.success(res, req.msg.success_msg.login, userDetail);
+      return commonHelper.success(res, Response.success_msg.login, userDetail);
     } catch (err) {
       console.error("Error during login:", err);
-      return commonHelper.error(res, req.msg.error_msg.intSerErr, err.message);
+      return commonHelper.error(res, Response.error_msg.intSerErr, err.message);
     }
   },
 
@@ -188,10 +189,10 @@ module.exports = {
           id: req.user.id,
         },
       });
-      return commonHelper.success(res, req.msg.success_msg.logOut);
+      return commonHelper.success(res, Response.success_msg.logOut);
     } catch (error) {
       console.error("Error during login:", err);
-      return commonHelper.error(res, req.msg.error_msg.intSerErr, err.message);
+      return commonHelper.error(res, Response.error_msg.intSerErr, err.message);
     }
   },
 
@@ -207,17 +208,17 @@ module.exports = {
         raw: true,
       });
       if (!user) {
-        return commonHelper.failed(res, req.msg.failed_msg.emailNotReg);
+        return commonHelper.failed(res, Response.failed_msg.emailNotReg);
       }
       // Generate OTP
       // const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const otp = "1111";
       await Models.userModel.update({ otp: otp }, { where: { id: user.id } });
       // Here, you would typically send the OTP to the user's email.
-      return commonHelper.success(res, req.msg.success_msg.otpSend);
+      return commonHelper.success(res, Response.success_msg.otpSend);
     } catch (error) {
       console.error("Error during login:", err);
-      return commonHelper.error(res, req.msg.error_msg.intSerErr, err.message);
+      return commonHelper.error(res, Response.error_msg.intSerErr, err.message);
     }
   },
 
@@ -241,12 +242,12 @@ module.exports = {
         { where: { email: req.body.email } }
       );
 
-      return commonHelper.success(res, req.msg.success_msg.passwordUpdate);
+      return commonHelper.success(res, Response.success_msg.passwordUpdate);
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -293,14 +294,14 @@ module.exports = {
 
       return commonHelper.success(
         res,
-        req.msg.success_msg.updateProfile,
+        Response.success_msg.updateProfile,
         updatedUser
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -322,7 +323,7 @@ module.exports = {
       );
 
       if (!isPasswordValid) {
-        return commonHelper.failed(res, req.msg.failed_msg.incorrectCurrPwd);
+        return commonHelper.failed(res, Response.failed_msg.incorrectCurrPwd);
       }
 
       const hashedNewPassword = await commonHelper.bcryptData(
@@ -335,12 +336,12 @@ module.exports = {
         { where: { id: req.user.id } }
       );
 
-      return commonHelper.success(res, req.msg.success_msg.passwordUpdate);
+      return commonHelper.success(res, Response.success_msg.passwordUpdate);
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -361,14 +362,14 @@ module.exports = {
       if (!user) {
         return commonHelper.failed(
           res,
-          req.msg.failed_msg.userNotFound
+          Response.failed_msg.userNotFound
         );
       }
 
       if (otp !== STATIC_OTP) {
         return commonHelper.failed(
           res,
-          req.msg.failed_msg.invalidOtp
+          Response.failed_msg.invalidOtp
         );
       }
 
@@ -397,7 +398,7 @@ module.exports = {
 
       return commonHelper.success(
         res,
-        req.msg.success_msg.otpVerify,
+        Response.success_msg.otpVerify,
         updatedUser
       );
 
@@ -405,7 +406,7 @@ module.exports = {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -423,19 +424,19 @@ module.exports = {
         raw: true,
       });
       if (!user) {
-        return commonHelper.failed(res, req.msg.failed_msg.emailNotReg);
+        return commonHelper.failed(res, Response.failed_msg.emailNotReg);
       }
       // Generate OTP
       // const otp = Math.floor(100000 + Math.random() * 900000).toString();
       const otp = "1111";
       await Models.userModel.update({ otp: otp }, { where: { id: user.id } });
       // Here, you would typically send the OTP to the user's email.
-      return commonHelper.success(res, req.msg.success_msg.otpResend);
+      return commonHelper.success(res, Response.success_msg.otpResend);
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -448,12 +449,12 @@ module.exports = {
           id: req.params.id,
         },
       });
-      return commonHelper.success(res, req.msg.success_msg.userList, response);
+      return commonHelper.success(res, Response.success_msg.userList, response);
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -471,7 +472,7 @@ module.exports = {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -491,14 +492,14 @@ module.exports = {
       });
       return commonHelper.success(
         res,
-        req.msg.success_msg.userDetail,
+        Response.success_msg.userDetail,
         response
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -513,7 +514,7 @@ module.exports = {
       });
 
       if (!cmsData) {
-        return commonHelper.failed(res, req.msg.failed_msg.noDataFound);
+        return commonHelper.failed(res, Response.failed_msg.noDataFound);
       }
 
       // fetch user language
@@ -560,13 +561,13 @@ module.exports = {
         description,
       };
 
-      return commonHelper.success(res, req.msg.success_msg.cms, response);
+      return commonHelper.success(res, Response.success_msg.cms, response);
 
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -615,7 +616,7 @@ module.exports = {
 
       return commonHelper.success(
         res,
-        req.msg.success_msg.faq,
+        Response.success_msg.faq,
         response
       );
 
@@ -623,7 +624,7 @@ module.exports = {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -715,14 +716,14 @@ module.exports = {
       response.ecoPoints = req.user.ecoPoints || 0;
       return commonHelper.success(
         res,
-        req.msg.success_msg.dashboardData,
+        Response.success_msg.dashboardData,
         response
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -788,14 +789,14 @@ module.exports = {
 
       return commonHelper.success(
         res,
-        req.msg.success_msg.productDetails,
+        Response.success_msg.productDetails,
         response
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -859,14 +860,14 @@ module.exports = {
 
       return commonHelper.success(
         res,
-        req.msg.success_msg.productDetails,
+        Response.success_msg.productDetails,
         response
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -885,13 +886,13 @@ module.exports = {
       });
       return commonHelper.success(
         res,
-        req.msg.success_msg.notificationStatusChange
+        Response.success_msg.notificationStatusChange
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -999,7 +1000,7 @@ module.exports = {
 
       return commonHelper.success(
         res,
-        req.msg.success_msg.userAddressAdd,
+        Response.success_msg.userAddressAdd,
         newAddress
       );
     } catch (error) {
@@ -1009,7 +1010,7 @@ module.exports = {
         res,
         error.isJoi
           ? error.message // 👈 clean validation msg for GlobalAlert
-          : req.msg.error_msg.intSerErr,
+          : Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1022,14 +1023,14 @@ module.exports = {
       });
       return commonHelper.success(
         res,
-        req.msg.success_msg.userAddressList,
+        Response.success_msg.userAddressList,
         addressList
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1059,14 +1060,14 @@ module.exports = {
       });
       return commonHelper.success(
         res,
-        req.msg.success_msg.userAddressEdit,
+        Response.success_msg.userAddressEdit,
         updatedAddress
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1077,12 +1078,12 @@ module.exports = {
       await Models.userDeliveryAddressModel.destroy({
         where: { id: req.body.addressId, userId: req.user.id },
       });
-      return commonHelper.success(res, req.msg.success_msg.userAddressDelete);
+      return commonHelper.success(res, Response.success_msg.userAddressDelete);
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1095,14 +1096,14 @@ module.exports = {
       });
       return commonHelper.success(
         res,
-        req.msg.success_msg.userAddressDetail,
+        Response.success_msg.userAddressDetail,
         addressDetail
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1124,21 +1125,21 @@ module.exports = {
         await existingCartItem.save();
         return commonHelper.success(
           res,
-          req.msg.success_msg.addToCart,
+          Response.success_msg.addToCart,
           existingCartItem
         );
       }
       let newCartItem = await Models.cartModel.create(payload);
       return commonHelper.success(
         res,
-        req.msg.success_msg.addToCart,
+        Response.success_msg.addToCart,
         newCartItem
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1189,12 +1190,12 @@ module.exports = {
           },
         ],
       });
-      return commonHelper.success(res, req.msg.success_msg.viewCart, cartItems);
+      return commonHelper.success(res, Response.success_msg.viewCart, cartItems);
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1205,12 +1206,12 @@ module.exports = {
       await Models.cartModel.destroy({
         where: { id: req.query.cartId, userId: req.user.id },
       });
-      return commonHelper.success(res, req.msg.success_msg.removeFromCart);
+      return commonHelper.success(res, Response.success_msg.removeFromCart);
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1231,17 +1232,17 @@ module.exports = {
       if (existingCartItem && payload.type == 2) {
         existingCartItem.quantity += 1;
         await existingCartItem.save();
-        return commonHelper.success(res, req.msg.success_msg.addToCart);
+        return commonHelper.success(res, Response.success_msg.addToCart);
       } else {
         existingCartItem.quantity -= 1;
         await existingCartItem.save();
-        return commonHelper.success(res, req.msg.success_msg.removeFromCart);
+        return commonHelper.success(res, Response.success_msg.removeFromCart);
       }
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1284,7 +1285,7 @@ module.exports = {
         }
       }
 
-      return commonHelper.success(res, req.msg.success_msg.placeOrder, {
+      return commonHelper.success(res, Response.success_msg.placeOrder, {
         orderId: firstCreatedOrder.id,  // << IMPORTANT
       });
 
@@ -1292,7 +1293,7 @@ module.exports = {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1346,12 +1347,12 @@ module.exports = {
           },
         ],
       });
-      return commonHelper.success(res, req.msg.success_msg.getOrders, orders);
+      return commonHelper.success(res, Response.success_msg.getOrders, orders);
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1369,14 +1370,14 @@ module.exports = {
       });
       return commonHelper.success(
         res,
-        req.msg.success_msg.getOrderDetails,
+        Response.success_msg.getOrderDetails,
         order
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1393,14 +1394,14 @@ module.exports = {
       let order = await Models.contactUsModel.create(objToSave);
       return commonHelper.success(
         res,
-        req.msg.success_msg.getOrderDetails,
+        Response.success_msg.getOrderDetails,
         order
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1418,13 +1419,13 @@ module.exports = {
       });
       return commonHelper.success(
         res,
-        req.msg.success_msg.onlineStatusChange,
+        Response.success_msg.onlineStatusChange,
       );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
@@ -1483,7 +1484,7 @@ module.exports = {
 
       return commonHelper.success(
         res,
-        req.msg.success_msg.onlineStatusChange,
+        Response.success_msg.onlineStatusChange,
         response
       );
 
@@ -1491,7 +1492,7 @@ module.exports = {
       console.log("error", error);
       return commonHelper.error(
         res,
-        req.msg.error_msg.intSerErr,
+        Response.error_msg.intSerErr,
         error.message
       );
     }
