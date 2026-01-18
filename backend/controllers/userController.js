@@ -11,15 +11,6 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const crypto = require("crypto");
 
 
-Models.productModel.belongsTo(Models.categoryModel, { foreignKey: "categoryId" });
-Models.productModel.hasMany(Models.productsImagesModel, { foreignKey: "productId" })
-Models.userModel.hasMany(Models.userDeliveryAddressModel, { foreignKey: "userId" })
-Models.cartModel.belongsTo(Models.productModel, { foreignKey: "productId" })
-Models.orderModel.belongsTo(Models.productModel, { foreignKey: "productId" })
-Models.orderModel.belongsTo(Models.userDeliveryAddressModel, { foreignKey: "addressId" })
-Models.orderModel.belongsTo(Models.userModel, { foreignKey: "driverId", as: "driverDetail" })
-Models.orderModel.belongsTo(Models.userDeliveryAddressModel, { as: "address", foreignKey: "addressId" });
-
 module.exports = {
   adminDetail: async (req, res) => {
     try {

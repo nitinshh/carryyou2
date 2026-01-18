@@ -3,32 +3,31 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
     "contactUs",
     {
       ...require("./cors")(Sequelize, DataTypes),
-      subjectInEnglish: {
+      name: {
         type: DataTypes.STRING(255),
         allowNull: true,
         defaultValue: null,
       },
-      subjectInFinnish: {
+      email: {
         type: DataTypes.STRING(255),
         allowNull: true,
         defaultValue: null,
       },
-      messageInEnglish: {
+      countryCode: {
+        type: DataTypes.STRING(30),
+        allowNull: true,
+        defaultValue: null,
+      },
+      phoneNumber: {
+        type: DataTypes.STRING(30),
+        allowNull: true,
+        defaultValue: null,
+      },
+      message: {
         type: DataTypes.TEXT,
         allowNull: true,
         defaultValue: null,
       },
-      messageInFinnish: {
-        type: DataTypes.TEXT,
-        allowNull: true,
-        defaultValue: null,
-      },
-      priority:{
-        type: DataTypes.INTEGER(11),
-        allowNull: true,
-        defaultValue: 0,  //1 for low 2 for medium 3 for high
-        comment: "1 for low 2 for medium 3 for high",
-      }
     },
     {
       timestamps: true,

@@ -20,13 +20,7 @@ const PORT = process.env.PORT || 4005;
 connectdb();
 
 var server = require('http').createServer(app);
-const io = require("socket.io")(server, {
-  cors: {
-    origin: [CLIENT_ADMIN_URL], // frontend origin
-    methods: ["GET", "POST"],
-    credentials: true
-  },
-});
+const io = require("socket.io")(server);
 
 // Set EJS as view engine
 app.set("view engine", "ejs");
@@ -66,8 +60,8 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(null, swaggerOptions));
 
 // Routes
 app.use("/", indexRouter);
-app.use("/users", usersRouter);
-app.use("/driver", driverRouter);
+// app.use("/users", usersRouter);
+// app.use("/driver", driverRouter);
 
 // 404 Handler
 app.use((req, res, next) => next(createError(404)));

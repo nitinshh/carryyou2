@@ -4,7 +4,6 @@ const Models = require("../models/index");
 const commonHelper = require("../helpers/commonHelper.js");
 const resp = require("../config/responses");
 const Sequelize = require("sequelize");
-const { getMessages } = require("../helpers/langMessages");
 
 
 module.exports = {

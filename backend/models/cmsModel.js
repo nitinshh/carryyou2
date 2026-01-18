@@ -3,43 +3,11 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
     "cms",
     {
       ...require("./cors")(Sequelize, DataTypes),
-      titleInEnglish: {
+      title: {
         type: DataTypes.STRING(255),
         allowNull: true
       },
-      titleInFinnish: {
-        type: DataTypes.STRING(255),
-        allowNull: true
-      },
-      titleInRussian: {
-        type: DataTypes.STRING(255),
-        allowNull: true
-      },
-      titleInSwedish: {
-        type: DataTypes.STRING(255),
-        allowNull: true
-      },
-      titleInUkrainian: {
-        type: DataTypes.STRING(255),
-        allowNull: true
-      },
-      descriptionInEnglish: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      descriptionInFinnish: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      descriptionInRussian: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      descriptionInSwedish: {
-        type: DataTypes.TEXT,
-        allowNull: false,
-      },
-      descriptionInUkrainian: {
+      descriptionh: {
         type: DataTypes.TEXT,
         allowNull: false,
       },

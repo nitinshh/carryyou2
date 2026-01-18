@@ -11,14 +11,17 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         comment: "0 for admin 1 for user/customers 2 for drivers",
       },
 
+      adminApprovalStatus: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0, // 0 = pending, 1 = approved, 2 = rejected
+      },
+
       fullName: {
         type: DataTypes.STRING(50),
         allowNull: true,
       },
-      supportEmail: {
-        type: DataTypes.STRING(255),
-        allowNull: true,
-      },
+
       email: {
         type: DataTypes.STRING(255),
         allowNull: true,
@@ -43,6 +46,16 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         type: DataTypes.STRING(255),
         allowNull: true,
         defaultValue: null,
+      },
+
+      city: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+
+      country: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
       },
 
       socialType: {
@@ -70,104 +83,39 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         comment: "0 => inactive, 1 => active",
       },
 
-      isAssigned: {
+      isOtpVerified: {
         type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0, // 0 means no. 1 means yes
-      },
-
-      language: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0 // 0 means englisg, 1 means finnish 2 means russian 3 means swedish 4 means ukrainian
+        allowNull: true,
+        defaultValue: 0, // 0 means no, 1 means yes
       },
 
       location: {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
+
       latitude: {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
+
       longitude: {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
 
-      isLoyaltyRewardsNotificationOn: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 1, // 0 means no, 1 means yes
-      },
-
-      isEcoMilestoneNotificationOn: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 1, // 0 means no, 1 means yes
-      },
-
-      isRefillRemindersNotificationOn: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 1, // 0 means no, 1 means yes
-      },
-
-      isPromotionOrNewProductsNotificationOn: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 1, // 0 means no, 1 means yes
-      },
-
-      isDeliveryUpdatesNotificationOn: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 1, // 0 means no, 1 means yes
-      },
-      otp: {
-        type: DataTypes.STRING(10),
-        allowNull: true,
-      },
-      isOtpVerified: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 0, // 0 means no, 1 means yes
-      },
       isOnline: {
         type: DataTypes.INTEGER,
         allowNull: true,
         defaultValue: 1, // 0 means offline, 1 means online
       },
 
-      driverIdNumber: {
+      licenceFrontImage: {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
 
-      autoAcceptOrders: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 1, // 0 means no, 1 means yes
-      },
-
-      ecoPoints: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 0
-      },
-
-      loyaltyPoints: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 0
-      },
-
-      vehicleType: {
-        type: DataTypes.STRING(255),
-        allowNull: true,
-      },
-
-      vehicleNumber: {
+      licenceBackImage: {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
@@ -177,15 +125,65 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull: true,
       },
 
-      agentId: {
+      issuedOn: {
         type: DataTypes.STRING(255),
         allowNull: true,
       },
 
-      cod: {
+      licenceType: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      dob: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      nationality: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      expiryDate: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      pictureOfVehicle: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      typeOfVehicle: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        defaultValue: 0 // 0 means disabled, 1 means enabled
+        defaultValue: 0, // 0 for bike, 1 for car, 2 for van
+      },
+
+      vehicleRegistrationImage: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      registrationExpiryDate: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      insurancePolicyImage: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      insuranceExpiryDate: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+      },
+
+      vehicleNumber: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
       },
 
       resetToken: {
@@ -211,17 +209,6 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: null,
       },
-
-      tokenVersion: {
-        type: DataTypes.INTEGER,
-        allowNull: true,
-        defaultValue: 1,
-      },
-
-      masterPassword: {
-        type: DataTypes.STRING(255),
-        allowNull: true
-      }
 
     },
     {

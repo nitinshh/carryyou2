@@ -19,17 +19,28 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
+      driverId: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        defaultValue: null,
+        references: {
+          model: "users",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
       currency: {
         type: DataTypes.STRING(10),
         allowNull: true,
         defaultValue: 'USD'
       },
-      orderId: {
+      bookingId: {
         type: Sequelize.UUID,
         allowNull: true,
         defaultValue: null,
         references: {
-          model: "orders",
+          model: "bookings",
           key: "id",
         },
         onUpdate: "CASCADE",
