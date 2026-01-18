@@ -9,7 +9,7 @@ const helper = require("../helpers/validation.js");
 const Models = require("../models/index");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const crypto = require("crypto");
-const Response=require("../config/responses.js")
+const Response = require("../config/responses.js")
 
 
 module.exports = {
@@ -17,15 +17,18 @@ module.exports = {
   signUp: async (req, res) => {
     try {
       const schema = Joi.object().keys({
-        fullName: Joi.string().required(),
-        email: Joi.string().email().required(),
+        fullName: Joi.string().optional(),
+        email: Joi.string().email().optional(),
         countryCode: Joi.string().optional(),
         phoneNumber: Joi.string().optional(),
-        password: Joi.string().required(),
-        role: Joi.number().valid(0, 1, 2).required(),
-        deviceToken: Joi.string().optional(), // static data, will come from frontend
+        password: Joi.string().optional(),
+        role: Joi.number().valid(1, 2).required(),
+        city: Joi.string().optional(),
+        country: Joi.string().optional(),
+        deviceToken: Joi.string().optional(),
         deviceType: Joi.number().valid(1, 2).optional(),
       });
+
       let payload = await helper.validationJoi(req.body, schema);
 
       const { email, password, role } = payload;
@@ -34,10 +37,14 @@ module.exports = {
         where: { email: email, role: role },
         raw: true,
       });
+
       if (user && role == user.role) {
         return commonHelper.failed(res, Response.failed_msg.userWithEmail);
       }
 
+      /* =======================
+         STRIPE CUSTOMER
+      ======================== */
       let customerId = null;
       if (payload.email) {
         const customer = await stripe.customers.create({
@@ -46,6 +53,23 @@ module.exports = {
         });
         customerId = customer.id;
       }
+
+      /* =======================
+         PROFILE IMAGE
+      ======================== */
+      let image = null;
+      if (req.files || req.files.profilePicture) {
+        image = await commonHelper.fileUpload(
+          req.files.profilePicture,
+          "images"
+        );
+      }
+
+      /* =======================
+         OTP SETUP (COMMENTED)
+      ======================== */
+
+      // const otp = "1111"; // static for now
 
       let objToSave = {
         fullName: payload.fullName,
@@ -57,12 +81,33 @@ module.exports = {
         ),
         countryCode: payload.countryCode,
         phoneNumber: payload.phoneNumber,
+        city: payload.city,
+        country: payload.country,
+        profilePicture: image,
         customerId: customerId,
         deviceToken: payload.deviceToken,
         deviceType: payload.deviceType,
       };
+
       let newUser = await Models.userModel.create(objToSave);
 
+      /* =======================
+         TWILIO SEND OTP (COMMENTED)
+      ======================== */
+
+      // if (payload.phoneNumber && payload.countryCode) {
+      //   const phone = payload.countryCode + payload.phoneNumber;
+      //   try {
+      //     await otpManager.sendOTP(phone);
+      //     console.log("OTP sent via Twilio to", phone);
+      //   } catch (err) {
+      //     console.error("Twilio OTP send failed:", err);
+      //   }
+      // }
+
+      /* =======================
+         JWT TOKEN
+      ======================== */
       const token = jwt.sign(
         {
           id: newUser.id,
@@ -70,14 +115,21 @@ module.exports = {
         },
         secretKey
       );
+
       let userDetail = await Models.userModel.findOne({
         where: { id: newUser.id },
         raw: true,
       });
+
       userDetail.token = token;
-      return commonHelper.success(res, Response.success_msg.signUp, userDetail);
+
+      return commonHelper.success(
+        res,
+        Response.success_msg.signUp,
+        userDetail
+      );
     } catch (error) {
-      console.error("Error during login:", error);
+      console.error("Error during signup:", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
@@ -85,6 +137,7 @@ module.exports = {
       );
     }
   },
+
 
   login: async (req, res) => {
     try {
@@ -94,7 +147,7 @@ module.exports = {
         password: Joi.string().required(),
         deviceToken: Joi.string().optional(), // static data, will come from frontend
         deviceType: Joi.number().valid(1, 2).optional(),
-        role: Joi.number().valid(0, 1, 2).required(),
+        role: Joi.number().valid(1, 2).required(),
       });
       let payload = await helper.validationJoi(req.body, schema);
 
@@ -126,9 +179,6 @@ module.exports = {
         {
           deviceToken: payload.deviceToken,
           deviceType: payload.deviceType,
-          location: payload.location,
-          latitude: payload.latitude,
-          longitude: payload.longitude,
           customerId: customerId
         },
         {
@@ -330,96 +380,158 @@ module.exports = {
     }
   },
 
-  otpVerify: async (req, res) => {
-    try {
-      const { email, otp } = req.body;
+otpVerify: async (req, res) => {
+  try {
+    const schema = Joi.object({
+      countryCode: Joi.string().required(),
+      phoneNumber: Joi.string()
+        .pattern(/^[0-9]{10}$/)
+        .required()
+        .messages({
+          "string.pattern.base":
+            "The phone number must be exactly 10 digits.",
+        }),
+      otp: Joi.string().required(),
+    });
 
-      // static OTP for now
-      const STATIC_OTP = "1111";
+    const payload = await helper.validationJoi(req.body, schema);
+    const { countryCode, phoneNumber, otp } = payload;
 
-      const user = await Models.userModel.findOne({
-        where: { email },
-        raw: true,
-      });
+    // static OTP for now
+    const STATIC_OTP = "1111";
 
-      if (!user) {
-        return commonHelper.failed(
-          res,
-          Response.failed_msg.userNotFound
-        );
-      }
+    const user = await Models.userModel.findOne({
+      where: {
+        countryCode,
+        phoneNumber,
+      },
+      raw: true,
+    });
 
-      if (otp !== STATIC_OTP) {
-        return commonHelper.failed(
-          res,
-          Response.failed_msg.invalidOtp
-        );
-      }
-
-      // mark otp as verified
-      await Models.userModel.update(
-        { isOtpVerified: 1, status: 1 },
-        { where: { id: user.id } }
-      );
-
-      // generate token (same as login)
-      const token = jwt.sign(
-        {
-          id: user.id,
-          email: user.email,
-        },
-        secretKey
-      );
-
-      // fetch updated user
-      let updatedUser = await Models.userModel.findOne({
-        where: { id: user.id },
-        raw: true,
-      });
-
-      updatedUser.token = token;
-
-      return commonHelper.success(
+    if (!user) {
+      return commonHelper.failed(
         res,
-        Response.success_msg.otpVerify,
-        updatedUser
-      );
-
-    } catch (error) {
-      console.log("error", error);
-      return commonHelper.error(
-        res,
-        Response.error_msg.intSerErr,
-        error.message
+        Response.failed_msg.userNotFound
       );
     }
-  },
+
+    if (otp !== STATIC_OTP) {
+      return commonHelper.failed(
+        res,
+        Response.failed_msg.invalidOtp
+      );
+    }
+
+    // mark OTP as verified & activate user
+    await Models.userModel.update(
+      {
+        isOtpVerified: 1,
+        status: 1,
+      },
+      { where: { id: user.id } }
+    );
+
+    // generate token (same as login)
+    const token = jwt.sign(
+      {
+        id: user.id,
+        phoneNumber: user.phoneNumber,
+      },
+      secretKey
+    );
+
+    // fetch updated user
+    let updatedUser = await Models.userModel.findOne({
+      where: { id: user.id },
+      raw: true,
+    });
+
+    updatedUser.token = token;
+
+    return commonHelper.success(
+      res,
+      Response.success_msg.otpVerify,
+      updatedUser
+    );
+
+  } catch (error) {
+    console.log("OTP verify error:", error);
+    return commonHelper.error(
+      res,
+      Response.error_msg.intSerErr,
+      error.message
+    );
+  }
+},
 
   resendOtp: async (req, res) => {
     try {
-      let schema = Joi.object().keys({
-        email: Joi.string().email().required(),
+      /* =======================
+         VALIDATION (PHONE ONLY)
+      ======================== */
+      const schema = Joi.object({
+        countryCode: Joi.string().required(),
+        phoneNumber: Joi.string()
+          .pattern(/^[0-9]{10}$/)
+          .required()
+          .messages({
+            "string.pattern.base":
+              "The phone number must be exactly 10 digits.",
+          }),
       });
-      let payload = await helper.validationJoi(req.body, schema);
-      const { email } = payload;
+
+      const payload = await helper.validationJoi(req.body, schema);
+      const { countryCode, phoneNumber } = payload;
+
+      /* =======================
+         USER LOOKUP
+      ======================== */
       const user = await Models.userModel.findOne({
-        where: { email: email },
-        raw: true,
+        where: {
+          countryCode,
+          phoneNumber,
+        },
       });
+
       if (!user) {
-        return commonHelper.failed(res, Response.failed_msg.emailNotReg);
+        return commonHelper.failed(res, Response.failed_msg.userNotFound);
       }
-      // Generate OTP
-      // const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const otp = "1111";
-      await Models.userModel.update({ otp: otp }, { where: { id: user.id } });
-      // Here, you would typically send the OTP to the user's email.
-      return commonHelper.success(res, Response.success_msg.otpResend);
+
+      /* =======================
+         UPDATE OTP
+      ======================== */
+      await Models.userModel.update(
+        {
+          otpVerify: 0,
+        },
+        { where: { id: user.id } }
+      );
+
+      /* =======================
+         TWILIO RESEND (COMMENTED)
+      ======================== */
+
+      // const phone = countryCode + phoneNumber;
+      // try {
+      //   await otpManager.sendOTP(phone);
+      //   console.log("OTP resent via Twilio to", phone);
+      // } catch (err) {
+      //   console.error("Twilio OTP resend failed:", err);
+      //   return commonHelper.failed(
+      //     res,
+      //     "Failed to resend OTP. Please try again."
+      //   );
+      // }
+
+      return commonHelper.success(res, Response.success_msg.otpResend, {
+        countryCode,
+        phoneNumber,
+      });
     } catch (error) {
-      console.log("error", error);
+      console.error("Error while resending OTP:", error);
       return commonHelper.error(
         res,
-        Response.error_msg.intSerErr,
+        Response.error_msg.otpResErr,
         error.message
       );
     }

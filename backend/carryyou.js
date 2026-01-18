@@ -59,7 +59,7 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(null, swaggerOptions));
 
 // Routes
 app.use("/", indexRouter);
-// app.use("/users", usersRouter);
+app.use("/users", usersRouter);
 
 // 404 Handler
 app.use((req, res, next) => next(createError(404)));

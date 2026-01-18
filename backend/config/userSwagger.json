@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Eco Clean",
+    "title": "Carry You",
     "description": "project description",
     "version": "1.0"
   },
@@ -15,16 +15,6 @@
     }
   },
   "paths": {
-    "/users/adminDetail": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-adminDetail-post",
-        "tags": ["Application User"],
-        "description": "",
-        "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
     "/users/signUp": {
       "post": {
         "x-swagger-router-controller": "middleware-name1",
@@ -36,7 +26,7 @@
             "name": "fullName",
             "in": "formData",
             "description": "Enter the firstName",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": ""
           },
@@ -44,7 +34,7 @@
             "name": "email",
             "in": "formData",
             "description": "Enter the email",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": "@gmail.com"
           },
@@ -52,7 +42,7 @@
             "name": "countryCode",
             "in": "formData",
             "description": "Enter country code",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": "+91"
           },
@@ -60,7 +50,7 @@
             "name": "phoneNumber",
             "in": "formData",
             "description": "Enter phone number",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": "8628023157"
           },
@@ -68,9 +58,35 @@
             "name": "password",
             "in": "formData",
             "description": "Enter password",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": "123456"
+          },
+          {
+            "name": "profilePicture",
+            "in": "formData",
+            "description": "Profile picture to upload",
+            "required": false,
+            "type": "file",
+            "format": "binary",
+            "maxLength": 5242880,
+            "allowedMimeTypes": ["image/jpeg", "image/png"]
+          },
+          {
+            "name": "city",
+            "in": "formData",
+            "description": "Enter city",
+            "required": false,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "country",
+            "in": "formData",
+            "description": "Enter country",
+            "required": false,
+            "type": "string",
+            "value": ""
           },
           {
             "name": "deviceType",
@@ -92,14 +108,19 @@
           {
             "name": "role",
             "in": "formData",
-            "description": "Enter role",
-            "required": true,
+            "description": "Enter role 1 for user, 2 for driver",
+            "required": false,
             "enum": [1, 2],
             "type": "number",
             "value": ""
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/login": {
@@ -113,7 +134,7 @@
             "name": "email",
             "in": "formData",
             "description": "Enter the email",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": "@gmail.com"
           },
@@ -121,7 +142,7 @@
             "name": "password",
             "in": "formData",
             "description": "Enter password",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": "123456"
           },
@@ -129,7 +150,7 @@
             "name": "role",
             "in": "formData",
             "description": "Enter role",
-            "required": true,
+            "required": false,
             "enum": [1, 2],
             "type": "number",
             "value": ""
@@ -152,7 +173,12 @@
             "value": 1
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/logout": {
@@ -167,7 +193,12 @@
           }
         ],
         "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/updateProfile": {
@@ -217,7 +248,12 @@
             "allowedMimeTypes": ["image/jpeg", "image/png"]
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/changePassword": {
@@ -236,7 +272,7 @@
             "name": "currentPassword",
             "in": "formData",
             "description": "Enter the currentPassword",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": ""
           },
@@ -244,12 +280,17 @@
             "name": "newPassword",
             "in": "formData",
             "description": "Enter newPassword ",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": ""
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/forgotPassword": {
@@ -268,7 +309,12 @@
             "value": ""
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/resendForgotPasswordLink": {
@@ -287,7 +333,12 @@
             "value": ""
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/otpVerify": {
@@ -298,12 +349,20 @@
         "description": "",
         "parameters": [
           {
-            "name": "email",
+            "name": "countryCode",
             "in": "formData",
-            "description": "Enter the email",
+            "description": "Enter country code",
             "required": false,
             "type": "string",
-            "value": ""
+            "value": "+91"
+          },
+          {
+            "name": "phoneNumber",
+            "in": "formData",
+            "description": "Enter phone number",
+            "required": false,
+            "type": "string",
+            "value": "8628023157"
           },
           {
             "name": "otp",
@@ -314,7 +373,12 @@
             "value": "1111"
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/resendOtp": {
@@ -325,15 +389,28 @@
         "description": "",
         "parameters": [
           {
-            "name": "email",
+            "name": "countryCode",
             "in": "formData",
-            "description": "Enter the email",
+            "description": "Enter country code",
             "required": false,
             "type": "string",
-            "value": ""
+            "value": "+91"
+          },
+          {
+            "name": "phoneNumber",
+            "in": "formData",
+            "description": "Enter phone number",
+            "required": false,
+            "type": "string",
+            "value": "8628023157"
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/getUserDetail": {
@@ -348,7 +425,12 @@
           }
         ],
         "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/deleteUser": {
@@ -358,22 +440,12 @@
         "tags": ["Application User"],
         "description": "",
         "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/faq": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-faq-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/cms": {
@@ -392,84 +464,18 @@
             "name": "type",
             "in": "formData",
             "description": "Enter the type 1 for about us, 2 for privacy policy 3 for terms and conditions",
-            "required": true,
+            "required": false,
             "enum": [1, 2, 3],
             "type": "number",
             "value": 1
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/dashboardData": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-dashboardData-get",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/productList": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-productList-get",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Enter the limit",
-            "required": false,
-            "type": "number",
-            "value": 10
-          },
-          {
-            "name": "skip",
-            "in": "query",
-            "description": "Enter the how many record you want to skip",
-            "required": false,
-            "type": "number",
-            "value": 0
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/productDetails": {
-      "post": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-productDetails-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "productId",
-            "in": "query",
-            "description": "Enter the productId",
-            "required": true,
-            "type": "number",
-            "value": 0
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/notificationStatusChange": {
@@ -501,7 +507,12 @@
             "value": 0
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/notificationsList": {
@@ -516,491 +527,12 @@
           }
         ],
         "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/cityList": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-cityList-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/postalCodeList": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-postalCodeList-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "cityId",
-            "in": "query",
-            "description": "Enter the city id",
-            "required": true,
-            "type": "number",
-            "value": 0
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/userAddressAdd": {
-      "post": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-userAddressAdd-post",
-        "tags": ["Application User"],
-        "description": "",
-        "parameters": [
-          {
-            "name": "name",
-            "in": "formData",
-            "description": "Enter the name",
-            "required": true,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "country",
-            "in": "formData",
-            "description": "Enter the country",
-            "required": true,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "location",
-            "in": "formData",
-            "description": "Enter location",
-            "required": true,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "latitude",
-            "in": "formData",
-            "description": "Enter latitude",
-            "required": false,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "longitude",
-            "in": "formData",
-            "description": "Enter longitude",
-            "required": false,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "streetNo",
-            "in": "formData",
-            "description": "Enter phone streetNo",
-            "required": true,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "houseNo",
-            "in": "formData",
-            "description": "Enter houseNo",
-            "required": true,
-            "type": "string",
-            "value": "123456"
-          },
-          {
-            "name": "postalCode",
-            "in": "formData",
-            "description": "Enter postalCode",
-            "required": false,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "isDefault",
-            "in": "formData",
-            "description": "Enter isDefault",
-            "required": false,
-            "enum": [0, 1],
-            "type": "number",
-            "value": ""
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/userAddressList": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-userAddressList-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/userAddressEdit": {
-      "put": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-userAddressEdit-put",
-        "tags": ["Application User"],
-        "description": "",
-        "parameters": [
-          {
-            "name": "addressId",
-            "in": "formData",
-            "description": "Enter the addressId",
-            "required": true,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "name",
-            "in": "formData",
-            "description": "Enter the name",
-            "required": false,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "country",
-            "in": "formData",
-            "description": "Enter the country",
-            "required": false,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "location",
-            "in": "formData",
-            "description": "Enter location",
-            "required": false,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "latitude",
-            "in": "formData",
-            "description": "Enter latitude",
-            "required": false,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "longitude",
-            "in": "formData",
-            "description": "Enter longitude",
-            "required": false,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "streetNo",
-            "in": "formData",
-            "description": "Enter phone streetNo",
-            "required": false,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "houseNo",
-            "in": "formData",
-            "description": "Enter houseNo",
-            "required": false,
-            "type": "string",
-            "value": "123456"
-          },
-          {
-            "name": "postalCode",
-            "in": "formData",
-            "description": "Enter postalCode",
-            "required": false,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "isDefault",
-            "in": "formData",
-            "description": "Enter isDefault",
-            "required": false,
-            "enum": [0, 1],
-            "type": "number",
-            "value": ""
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/userAddressDelete": {
-      "post": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-userAddressDelete-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "addressId",
-            "in": "query",
-            "description": "Enter the addressId",
-            "required": true,
-            "type": "number",
-            "value": 0
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/userAddressDetail": {
-      "post": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-userAddressDetail-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "addressId",
-            "in": "query",
-            "description": "Enter the addressId",
-            "required": true,
-            "type": "number",
-            "value": 0
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/addToCart": {
-      "post": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-addToCart-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "productId",
-            "in": "formData",
-            "description": "Enter the productId",
-            "required": true,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "quantity",
-            "in": "formData",
-            "description": "Enter the quantity",
-            "required": true,
-            "type": "number",
-            "value": ""
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/getCart": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-getCart-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/removeFromCart": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-removeFromCart-get",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "cartId",
-            "in": "formData",
-            "description": "Enter the cartId",
-            "required": true,
-            "type": "string",
-            "value": ""
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/updateCartQuantity": {
-      "post": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-addToCart-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "cartItemId",
-            "in": "formData",
-            "description": "Enter the cartItemId",
-            "required": true,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "productId",
-            "in": "formData",
-            "description": "Enter the productId",
-            "required": true,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "type",
-            "in": "formData",
-            "description": "Enter the type",
-            "required": true,
-            "enum": [1, 2],
-            "type": "number",
-            "value": ""
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/placeOrder": {
-      "post": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-placeOrder-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/getOrders": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-getOrders-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/getOrderDetails": {
-      "post": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-getOrderDetails-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "orderId",
-            "in": "formData",
-            "description": "Enter the orderId",
-            "required": true,
-            "type": "string",
-            "value": ""
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/customerSupport": {
-      "post": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-customerSupport-post",
-        "tags": ["Application User"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "subject",
-            "in": "formData",
-            "description": "Enter the subject",
-            "required": true,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "message",
-            "in": "formData",
-            "description": "Enter the message",
-            "required": true,
-            "type": "string",
-            "value": ""
-          },
-          {
-            "name": "priority",
-            "in": "formData",
-            "description": "Enter the priority",
-            "required": true,
-            "type": "string",
-            "value": ""
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/isOnlineStatusChange": {
@@ -1019,27 +551,17 @@
             "name": "isOnline",
             "in": "formData",
             "description": "Enter the isOnline",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": ""
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/dashboardDataDriver": {
-      "get": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-dashboardDataDriver-get",
-        "tags": ["Application Driver"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/stripeDetailReturn": {
@@ -1054,31 +576,12 @@
           }
         ],
         "parameters": [],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
-      }
-    },
-    "/users/createPayment": {
-      "post": {
-        "x-swagger-router-controller": "middleware-name1",
-        "operationId": "users-createPayment-post",
-        "tags": ["Web Payment"],
-        "description": "",
-        "security": [
-          {
-            "Bearer": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "amount",
-            "in": "formData",
-            "description": "Enter the amount",
-            "required": false,
-            "type": "string",
-            "value": ""
-          }
-        ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/stripeIntent": {
@@ -1097,12 +600,17 @@
             "name": "amount",
             "in": "formData",
             "description": "Enter the amount",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": ""
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     },
     "/users/stripeWebhook": {
@@ -1121,12 +629,17 @@
             "name": "transactionId",
             "in": "formData",
             "description": "Enter the transactionId",
-            "required": true,
+            "required": false,
             "type": "string",
             "value": ""
           }
         ],
-        "responses": { "200": { "description": "Signup successful" }, "400": { "description": "Validation error" }, "409": { "description": "User already exists" }, "500": { "description": "Internal server error" } }
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
       }
     }
   },
