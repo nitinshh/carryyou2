@@ -47,6 +47,7 @@ module.exports = function (io) {
 
   router.post('/signUp', controller.userController.signUp);
   router.post('/login', controller.userController.login);
+  router.post("/licenceDetailAdd",authentication,controller.userController.licenceDetailAdd)
   router.post('/logout', authentication, controller.userController.logOut);
   router.post("/forgetPassword", controller.userController.forgetPassword)
   router.post("/forgetPasswordUpdate", controller.userController.forgetPasswordUpdate)
