@@ -408,6 +408,180 @@
         }
       }
     },
+    "/users/licenceDetailUpdate": {
+      "put": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-licenceDetailUpdate-post",
+        "tags": ["Application User"],
+        "description": "Update driver licence details",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "licenceFrontImage",
+            "in": "formData",
+            "description": "Upload licence front image",
+            "required": false,
+            "type": "file",
+            "format": "binary",
+            "allowedMimeTypes": ["image/jpeg", "image/png"]
+          },
+          {
+            "name": "licenceBackImage",
+            "in": "formData",
+            "description": "Upload licence back image",
+            "required": false,
+            "type": "file",
+            "format": "binary",
+            "allowedMimeTypes": ["image/jpeg", "image/png"]
+          },
+          {
+            "name": "driversLicenseNumber",
+            "in": "formData",
+            "description": "Enter driver license number",
+            "required": false,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "issuedOn",
+            "in": "formData",
+            "description": "Licence issue date",
+            "required": false,
+            "type": "string",
+            "format": "date",
+            "value": "2023-01-01"
+          },
+          {
+            "name": "licenceType",
+            "in": "formData",
+            "description": "Enter licence type",
+            "required": false,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "dob",
+            "in": "formData",
+            "description": "Date of birth",
+            "required": false,
+            "type": "string",
+            "format": "date",
+            "value": "1995-01-01"
+          },
+          {
+            "name": "nationality",
+            "in": "formData",
+            "description": "Enter nationality",
+            "required": false,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "expiryDate",
+            "in": "formData",
+            "description": "Licence expiry date",
+            "required": false,
+            "type": "string",
+            "format": "date",
+            "value": "2030-01-01"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Licence details updated successfully" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/users/vehicleInformationUpdate": {
+      "put": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-vehicleInformationUpdate-post",
+        "tags": ["Application User"],
+        "description": "Update vehicle information details",
+        "consumes": ["multipart/form-data"],
+        "parameters": [
+          {
+            "name": "pictureOfVehicle",
+            "in": "formData",
+            "description": "Upload picture of vehicle",
+            "required": false,
+            "type": "file",
+            "format": "binary",
+            "allowedMimeTypes": ["image/jpeg", "image/png"]
+          },
+          {
+            "name": "typeOfVehicle",
+            "in": "formData",
+            "description": "Enter type of vehicle",
+            "required": false,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "vehicleRegistrationImage",
+            "in": "formData",
+            "description": "Upload vehicle registration image",
+            "required": false,
+            "type": "file",
+            "format": "binary",
+            "allowedMimeTypes": ["image/jpeg", "image/png"]
+          },
+          {
+            "name": "registrationExpiryDate",
+            "in": "formData",
+            "description": "Vehicle registration expiry date",
+            "required": false,
+            "type": "string",
+            "format": "date",
+            "value": "2030-01-01"
+          },
+          {
+            "name": "insurancePolicyImage",
+            "in": "formData",
+            "description": "Upload insurance policy image",
+            "required": false,
+            "type": "file",
+            "format": "binary",
+            "allowedMimeTypes": ["image/jpeg", "image/png"]
+          },
+          {
+            "name": "insuranceExpiryDate",
+            "in": "formData",
+            "description": "Insurance expiry date",
+            "required": false,
+            "type": "string",
+            "format": "date",
+            "value": "2026-01-01"
+          },
+          {
+            "name": "vehicleNumber",
+            "in": "formData",
+            "description": "Enter vehicle number",
+            "required": false,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Vehicle information updated successfully" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        },
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
     "/users/changePassword": {
       "post": {
         "x-swagger-router-controller": "middleware-name1",
@@ -643,9 +817,9 @@
         ],
         "parameters": [
           {
-            "name": "notificationType",
+            "name": "isNotificationOnOff",
             "in": "formData",
-            "description": "Enter the notificationType",
+            "description": "Enter the isNotificationOnOff",
             "required": false,
             "type": "string",
             "value": ""
