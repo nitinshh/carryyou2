@@ -700,24 +700,6 @@ module.exports = {
     }
   },
 
-  userDetail: async (req, res) => {
-    try {
-      let response = await Models.userModel.findOne({
-        where: {
-          id: req.params.id,
-        },
-      });
-      return commonHelper.success(res, Response.success_msg.userList, response);
-    } catch (error) {
-      console.log("error", error);
-      return commonHelper.error(
-        res,
-        Response.error_msg.intSerErr,
-        error.message,
-      );
-    }
-  },
-
   deleteUser: async (req, res) => {
     try {
       await Models.userModel.destroy({
@@ -742,11 +724,6 @@ module.exports = {
         where: {
           id: req.user.id,
         },
-        include: [
-          {
-            model: Models.userDeliveryAddressModel,
-          },
-        ],
       });
       return commonHelper.success(
         res,
@@ -784,12 +761,7 @@ module.exports = {
   notificationStatusChange: async (req, res) => {
     try {
       const userId = req.user.id; // assuming userId comes from token middleware
-      const { notificationType, value } = req.body; // e.g., { notificationType: "isEcoMilestoneNotificationOn", value: 0 }
-      // Update only that field
-      const updateData = {};
-      updateData[notificationType] = value;
-
-      await Models.userModel.update(updateData, {
+      await Models.userModel.update({isNotificationOnOff:req.body.isNotificationOnOff}, {
         where: { id: userId },
       });
       return commonHelper.success(
@@ -1031,10 +1003,7 @@ module.exports = {
       // ✅ Fetch order for notifications (if you need details)
       const order = await Models.orderModel.findOne({
         where: { id: transaction.orderId },
-        include: [
-          { model: Models.userModel, as: "driverDetail" },
-          { model: Models.userDeliveryAddressModel, as: "address" },
-        ],
+        
       });
 
       const admin = await Models.userModel.findOne({ where: { role: 0 } });

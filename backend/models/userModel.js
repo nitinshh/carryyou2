@@ -16,6 +16,11 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: 0, // 0 = pending, 1 = approved, 2 = rejected
       },
+      isNotificationOnOff:{
+        type:DataTypes.INTEGER,
+        allowNull:true,
+        defaultValue:1
+      },
 
       fullName: {
         type: DataTypes.STRING(50),
