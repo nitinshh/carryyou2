@@ -214,7 +214,11 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: null,
       },
-
+      socketId:{
+        type:DataTypes.STRING(255),
+        allowNull:true,
+        defaultValue:null
+      }
     },
     {
       timestamps: true,

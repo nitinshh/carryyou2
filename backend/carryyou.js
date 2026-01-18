@@ -9,8 +9,6 @@ const fileUpload = require("express-fileupload");
 const swaggerUi = require("swagger-ui-express");
 const cors = require('cors')
 
-const indexRouter = require("./routes/index");
-const usersRouter = require("./routes/userRoute")();
 const { connectdb } = require("./dbConnection");
 
 const app = express();
@@ -21,6 +19,9 @@ connectdb();
 var server = require('http').createServer(app);
 const io = require("socket.io")(server);
 
+
+const indexRouter = require("./routes/index");
+const usersRouter = require("./routes/userRoute")(io);
 // Set EJS as view engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));

@@ -16,7 +16,9 @@ var success_msg = {
   driverStatusChange: "Driver status changed successfully",
   userStatusChange: "User status changed successfully",
   onlineStatusChange:"User online status change successfully",
-  driverList:"Driver list get successfully"
+  driverList:"Driver list get successfully",
+  bookingCreate:"Ride booking create successfully",
+  bookingList:"Booking list get successfully",
 };
 
 var failed_msg = {

@@ -11,6 +11,10 @@ const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const crypto = require("crypto");
 const Response = require("../config/responses.js");
 
+Models.bookingModel.belongsTo(Models.userModel,{foreignKey:"userId",as:"user"})
+Models.bookingModel.belongsTo(Models.userModel,{foreignKey:"driverId",as:"driver"})
+
+
 module.exports = {
   signUp: async (req, res) => {
     try {
@@ -121,7 +125,11 @@ module.exports = {
 
       userDetail.token = token;
 
-      return commonHelper.success(res, Response.success_msg.signUp, userDetail);
+      return commonHelper.success(
+        res,
+        Response.success_msg.otpSend,
+        userDetail,
+      );
     } catch (error) {
       console.error("Error during signup:", error);
       return commonHelper.error(
@@ -269,7 +277,11 @@ module.exports = {
           id: req.user.id,
         },
       });
-      return commonHelper.success(res, Response.success_msg.logOut, userDetail);
+      return commonHelper.success(
+        res,
+        Response.success_msg.userDetail,
+        userDetail,
+      );
     } catch (error) {
       console.error("Error during signup:", error);
       return commonHelper.error(
@@ -761,9 +773,12 @@ module.exports = {
   notificationStatusChange: async (req, res) => {
     try {
       const userId = req.user.id; // assuming userId comes from token middleware
-      await Models.userModel.update({isNotificationOnOff:req.body.isNotificationOnOff}, {
-        where: { id: userId },
-      });
+      await Models.userModel.update(
+        { isNotificationOnOff: req.body.isNotificationOnOff },
+        {
+          where: { id: userId },
+        },
+      );
       return commonHelper.success(
         res,
         Response.success_msg.notificationStatusChange,
@@ -801,13 +816,13 @@ module.exports = {
     }
   },
 
-  updateUserLocation:async (req, res) => {
+  updateUserLocation: async (req, res) => {
     try {
       await Models.userModel.update(
         {
           location: req.body.location,
-          latitude:req.body.latitude,
-          longitude:req.body.longitude
+          latitude: req.body.latitude,
+          longitude: req.body.longitude,
         },
         {
           where: {
@@ -826,19 +841,22 @@ module.exports = {
     }
   },
 
-  driverList:async (req, res) => {
-    try { 
-       if(req.user&&req.user.latitude==null||req.user.longitude==null){
-         return commonHelper.failed(res, Response.failed_msg.noLocationAdd);
-       }
-    const { latitude, longitude } = req.user;
-    const radiusInKm = 1; // 1 KM
+  driverList: async (req, res) => {
+    try {
+      if (
+        (req.user && req.user.latitude == null) ||
+        req.user.longitude == null
+      ) {
+        return commonHelper.failed(res, Response.failed_msg.noLocationAdd);
+      }
+      const { latitude, longitude } = req.user;
+      const radiusInKm = 1; // 1 KM
 
-    const response = await Models.userModel.findAll({
-      attributes: {
-        include: [
-          [
-            Sequelize.literal(`
+      const response = await Models.userModel.findAll({
+        attributes: {
+          include: [
+            [
+              Sequelize.literal(`
               (6371 * acos(
                 cos(radians(${latitude}))
                 * cos(radians(latitude))
@@ -847,27 +865,224 @@ module.exports = {
                 * sin(radians(latitude))
               ))
             `),
-            "distance"
-          ]
-        ]
-      },
-      where: {
-        role: 2,          // drivers only
-        status: 1,        // active
-        isOnline: 1,
-        latitude: { [Op.ne]: null },
-        longitude: { [Op.ne]: null },
-      },
-      having: Sequelize.literal(`distance <= ${radiusInKm}`),
-      order: Sequelize.literal("distance ASC"),
-    });
-      return commonHelper.success(res, Response.success_msg.driverList,response);
+              "distance",
+            ],
+          ],
+        },
+        where: {
+          role: 2, // drivers only
+          status: 1, // active
+          isOnline: 1,
+          latitude: { [Op.ne]: null },
+          longitude: { [Op.ne]: null },
+        },
+        having: Sequelize.literal(`distance <= ${radiusInKm}`),
+        order: Sequelize.literal("distance ASC"),
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.driverList,
+        response,
+      );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
         error.message,
+      );
+    }
+  },
+
+  createBooking: (io) => async (req, res) => {
+    try {
+      let objToSave = {
+        userId: req.user.id,
+        driverId: req.body.driverId,
+        pickUpLocation: req.body.pickUpLocation,
+        pickUpLatitude: req.body.pickUpLatitude,
+        pickUpLongitude: req.body.pickUpLongitude,
+        destinationLocation: req.body.destinationLocation,
+        destinationLatitude: req.body.destinationLatitude,
+        destinationLongitude: req.body.destinationLongitude,
+        amount: req.body.amount,
+        distance: req.body.distance,
+        rideType: req.body.rideType,
+      };
+      let driverDetail = await Models.userModel.findOne({
+        where: {
+          id: req.body.driverId,
+        },
+        raw: true,
+      });
+      let response = await Models.bookingModel.create(objToSave);
+      io.to(driverDetail.socketId).emit("createBooking", response);
+      return commonHelper.success(
+        res,
+        Response.success_msg.bookingCreate,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
+  bookingListUser: async (req, res) => {
+    try {
+      let response = await Models.bookingList.findAll({
+        where: {
+          userId: req.user.id,
+        },
+        include: [
+          {
+            model: Models.userModel,
+            as: "driver",
+          },
+        ],
+      });
+
+      return commonHelper.success(
+        res,
+        Response.success_msg.bookingList,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
+  bookingListDriver: async (req, res) => {
+    try {
+      let response = await Models.bookingList.findAll({
+        where: {
+          driverId: req.user.id,
+        },
+        include: [
+          {
+            model: Models.userModel,
+            as: "user",
+          },
+        ],
+      });
+
+      return commonHelper.success(
+        res,
+        Response.success_msg.bookingList,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
+  bookingAcceptReject:async(req,res)=>{},
+
+  calculate_price: async (req, res) => {
+    try {
+      let {
+        pickupLat,
+        pickupLong,
+        destinationLat,
+        destinationLong,
+        surge = 0,
+      } = req.body;
+
+      // Convert surge to boolean (0 = false, 1 = true)
+      surge = Number(surge) === 1;
+
+      // Validate input
+      if (!pickupLat || !pickupLong || !destinationLat || !destinationLong) {
+        return commonHelper.error(res, "All required fields are missing.");
+      }
+
+      // Parse coordinates
+      pickupLat = parseFloat(pickupLat);
+      pickupLong = parseFloat(pickupLong);
+      destinationLat = parseFloat(destinationLat);
+      destinationLong = parseFloat(destinationLong);
+
+      const axios = require("axios");
+      const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+
+      // Fetch route from Google Maps
+      const response = await axios.get(
+        `https://maps.googleapis.com/maps/api/directions/json?origin=${pickupLat},${pickupLong}&destination=${destinationLat},${destinationLong}&key=${GOOGLE_MAPS_API_KEY}`,
+      );
+
+      if (response.data.status !== "OK") {
+        return commonHelper.error(
+          res,
+          "Failed to fetch route from Google Maps.",
+        );
+      }
+
+      const leg = response.data.routes[0].legs[0];
+      const distanceMiles = leg.distance.value / 1609.34; // meters to miles
+
+      // Get all vehicle types
+      const vehicleTypes = await Models.vehicleTypesModel.findAll({
+        where: { status: 1 },
+      });
+
+      if (!vehicleTypes || vehicleTypes.length === 0) {
+        return commonHelper.error(res, "No vehicle types found.");
+      }
+
+      // Build response for each vehicle type
+      const results = vehicleTypes.map((vehicleType) => {
+        const avgSpeed = parseFloat(vehicleType.avgSpeedMph) || 18; // fallback
+        const durationMinutes = (distanceMiles / avgSpeed) * 60;
+
+        let cost =
+          parseFloat(vehicleType.baseFare) +
+          parseFloat(vehicleType.perMileRate) * distanceMiles +
+          parseFloat(vehicleType.perMinuteRate) * durationMinutes;
+
+        if (surge) {
+          cost *= 2;
+        }
+
+        const durationText = `${Math.floor(durationMinutes)} minutes ${(
+          (durationMinutes % 1) *
+          60
+        ).toFixed(0)} seconds`;
+
+        return {
+          vehicleTypeId: vehicleType.id,
+          vehicleType: vehicleType.name,
+          estimatedCost: parseFloat(cost.toFixed(2)),
+          distanceInMiles: parseFloat(distanceMiles.toFixed(2)),
+          durationInMinutes: parseFloat(durationMinutes.toFixed(2)),
+          durationText,
+          surgeApplied: surge,
+        };
+      });
+
+      return commonHelper.success(
+        res,
+        "Estimated ride cost calculated successfully",
+        results,
+      );
+    } catch (error) {
+      console.error("Calculate Price Error:", error);
+      return commonHelper.error(
+        res,
+        "Something went wrong while calculating price.",
       );
     }
   },
@@ -1074,7 +1289,6 @@ module.exports = {
       // ✅ Fetch order for notifications (if you need details)
       const order = await Models.orderModel.findOne({
         where: { id: transaction.orderId },
-        
       });
 
       const admin = await Models.userModel.findOne({ where: { role: 0 } });

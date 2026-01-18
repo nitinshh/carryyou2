@@ -31,15 +31,15 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
                 allowNull: true,
                 defaultValue: null,
             },
-            fromLocation: {
+            pickUpLocation: {
                 type: DataTypes.STRING(255),
                 allowNull: true,
             },
-            fromLatitude: {
+            pickUpLatitude: {
                 type: DataTypes.STRING(255),
                 allowNull: true,
             },
-            fromLongitude: {
+            pickUpLongitude: {
                 type: DataTypes.STRING(255),
                 allowNull: true,
             },
