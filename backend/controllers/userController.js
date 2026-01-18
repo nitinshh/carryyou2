@@ -801,6 +801,77 @@ module.exports = {
     }
   },
 
+  updateUserLocation:async (req, res) => {
+    try {
+      await Models.userModel.update(
+        {
+          location: req.body.location,
+          latitude:req.body.latitude,
+          longitude:req.body.longitude
+        },
+        {
+          where: {
+            id: req.user.id,
+          },
+        },
+      );
+      return commonHelper.success(res, Response.success_msg.onlineStatusChange);
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
+  driverList:async (req, res) => {
+    try { 
+       if(req.user&&req.user.latitude==null||req.user.longitude==null){
+         return commonHelper.failed(res, Response.failed_msg.noLocationAdd);
+       }
+    const { latitude, longitude } = req.user;
+    const radiusInKm = 1; // 1 KM
+
+    const response = await Models.userModel.findAll({
+      attributes: {
+        include: [
+          [
+            Sequelize.literal(`
+              (6371 * acos(
+                cos(radians(${latitude}))
+                * cos(radians(latitude))
+                * cos(radians(longitude) - radians(${longitude}))
+                + sin(radians(${latitude}))
+                * sin(radians(latitude))
+              ))
+            `),
+            "distance"
+          ]
+        ]
+      },
+      where: {
+        role: 2,          // drivers only
+        status: 1,        // active
+        isOnline: 1,
+        latitude: { [Op.ne]: null },
+        longitude: { [Op.ne]: null },
+      },
+      having: Sequelize.literal(`distance <= ${radiusInKm}`),
+      order: Sequelize.literal("distance ASC"),
+    });
+      return commonHelper.success(res, Response.success_msg.driverList,response);
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
   stripeDetailReturn: async (req, res) => {
     try {
       let response = {

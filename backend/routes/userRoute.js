@@ -61,7 +61,10 @@ module.exports = function (io) {
   router.post("/deleteUser", authentication, controller.userController.deleteUser)
   router.get("/getUserDetail", authentication, controller.userController.getUserDetail)
   router.put("/notificationStatusChange", authentication, controller.userController.notificationStatusChange)
-  
+  router.post("/isOnlineStatusChange", authentication, controller.userController.isOnlineStatusChange)
+  router.post("/updateUserLocation",authentication,controller.userController.updateUserLocation),
+  router.get("/driverList",authentication,controller.userController.driverList)
+
   router.get(
     "/stripeDetailReturn",
     controller.userController.stripeDetailReturn
@@ -73,8 +76,6 @@ module.exports = function (io) {
   );
   router.post("/stripeWebhook", controller.userController.stripeWebhook(io));
 
-  //driver side
-  router.post("/isOnlineStatusChange", authentication, controller.userController.isOnlineStatusChange)
   
   return router
 }

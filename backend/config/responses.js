@@ -15,7 +15,8 @@ var success_msg = {
   logOut:"User logout successfully",
   driverStatusChange: "Driver status changed successfully",
   userStatusChange: "User status changed successfully",
-  onlineStatusChange:"User online status change successfully"
+  onlineStatusChange:"User online status change successfully",
+  driverList:"Driver list get successfully"
 };
 
 var failed_msg = {
@@ -31,6 +32,7 @@ var failed_msg = {
   tokReq: "Token is required!",
   invTok: "Invalid token!",
   invalidOtp: "Invalid OTP",
+  noLocationAdd:"User location not found"
 };
 
 var error_msg = {
