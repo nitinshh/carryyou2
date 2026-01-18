@@ -56,6 +56,8 @@ module.exports = function (io) {
   router.post('/resendOtp', controller.userController.resendOtp);
   router.post("/cms", authentication, controller.userController.cms)
   router.put("/updateProfile", authentication, controller.userController.updateProfile)
+  router.put("/licenceDetailUpdate",authentication,controller.userController.licenceDetailUpdate)
+  router.put("/vehicleInformationUpdate",authentication,controller.userController.vehicleInformationUpdate)
   router.post("/deleteUser", authentication, controller.userController.deleteUser)
   router.get("/getUserDetail", authentication, controller.userController.getUserDetail)
   router.put("/notificationStatusChange", authentication, controller.userController.notificationStatusChange)

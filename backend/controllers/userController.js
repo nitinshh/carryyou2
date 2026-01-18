@@ -153,10 +153,10 @@ module.exports = {
       if (!user) {
         return commonHelper.failed(res, Response.failed_msg.invalidCrd);
       }
-      if(user&&user.role==2&&user.adminApprovalStatus==0){
+      if (user && user.role == 2 && user.adminApprovalStatus == 0) {
         return commonHelper.failed(res, Response.failed_msg.accNotAppoved);
       }
-       if(user&&user.role==2&&user.adminApprovalStatus==2){
+      if (user && user.role == 2 && user.adminApprovalStatus == 2) {
         return commonHelper.failed(res, Response.failed_msg.accReject);
       }
 
@@ -205,7 +205,7 @@ module.exports = {
     }
   },
 
-  licenceDetailAdd:async(req,res)=>{
+  licenceDetailAdd: async (req, res) => {
     try {
       let licenceFrontImage = null;
       if (req.files || req.files.licenceFrontImage) {
@@ -235,41 +235,41 @@ module.exports = {
           "images",
         );
       }
-     let insurancePolicyImage = null;
+      let insurancePolicyImage = null;
       if (req.files || req.files.insurancePolicyImage) {
         insurancePolicyImage = await commonHelper.fileUpload(
           req.files.insurancePolicyImage,
           "images",
         );
       }
-      let objToUpate={
-        licenceFrontImage:licenceFrontImage,
-        licenceBackImage:licenceBackImage,
-        driversLicenseNumber:req.body.driversLicenseNumber,
-        pictureOfVehicle:pictureOfVehicle,
-        issuedOn:req.body.issuedOn,
-        licenceType:req.body.licenceType,
-        dob:req.body.dob,
-        nationality:req.body.nationality,
-        expiryDate:req.body.expiryDate,
-        typeOfVehicle:req.body.typeOfVehicle,
-        vehicleRegistrationImage:vehicleRegistrationImage,
-        registrationExpiryDate:req.body.registrationExpiryDate,
-        insurancePolicyImage:insurancePolicyImage,
-        insuranceExpiryDate:req.body.insuranceExpiryDate,
-        vehicleNumber:req.body.vehicleNumber
-      }
-      await Models.userModel.update(objToUpate,{
-        where:{
-          id:req.user.id
-        }
-      })
-      let userDetail=await Models.userModel.findOne({
-        where:{
-          id:req.user.id
-        }
-      })
-       return commonHelper.success(res, Response.success_msg.logOut,userDetail);
+      let objToUpate = {
+        licenceFrontImage: licenceFrontImage,
+        licenceBackImage: licenceBackImage,
+        driversLicenseNumber: req.body.driversLicenseNumber,
+        pictureOfVehicle: pictureOfVehicle,
+        issuedOn: req.body.issuedOn,
+        licenceType: req.body.licenceType,
+        dob: req.body.dob,
+        nationality: req.body.nationality,
+        expiryDate: req.body.expiryDate,
+        typeOfVehicle: req.body.typeOfVehicle,
+        vehicleRegistrationImage: vehicleRegistrationImage,
+        registrationExpiryDate: req.body.registrationExpiryDate,
+        insurancePolicyImage: insurancePolicyImage,
+        insuranceExpiryDate: req.body.insuranceExpiryDate,
+        vehicleNumber: req.body.vehicleNumber,
+      };
+      await Models.userModel.update(objToUpate, {
+        where: {
+          id: req.user.id,
+        },
+      });
+      let userDetail = await Models.userModel.findOne({
+        where: {
+          id: req.user.id,
+        },
+      });
+      return commonHelper.success(res, Response.success_msg.logOut, userDetail);
     } catch (error) {
       console.error("Error during signup:", error);
       return commonHelper.error(
@@ -379,7 +379,7 @@ module.exports = {
       // Prepare object to update
       const objToSave = {
         fullName: req.body.fullName,
-        profilePicture:image?image:profilePicture,
+        profilePicture: image ? image : profilePicture,
         phoneNumber: req.body.phoneNumber,
         countryCode: req.body.countryCode,
       };
@@ -402,6 +402,106 @@ module.exports = {
       );
     } catch (error) {
       console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
+  licenceDetailUpdate: async (req, res) => {
+    try {
+      let licenceFrontImage = null;
+      if (req.files || req.files.licenceFrontImage) {
+        licenceFrontImage = await commonHelper.fileUpload(
+          req.files.licenceFrontImage,
+          "images",
+        );
+      }
+      let licenceBackImage = null;
+      if (req.files || req.files.licenceBackImage) {
+        licenceBackImage = await commonHelper.fileUpload(
+          req.files.licenceBackImage,
+          "images",
+        );
+      }
+      let objToUpate = {
+        licenceFrontImage: licenceFrontImage,
+        licenceBackImage: licenceBackImage,
+        driversLicenseNumber: req.body.driversLicenseNumber,
+        issuedOn: req.body.issuedOn,
+        licenceType: req.body.licenceType,
+        dob: req.body.dob,
+        nationality: req.body.nationality,
+        expiryDate: req.body.expiryDate,
+      };
+      await Models.userModel.update(objToUpate, {
+        where: {
+          id: req.user.id,
+        },
+      });
+      let userDetail = await Models.userModel.findOne({
+        where: {
+          id: req.user.id,
+        },
+      });
+      return commonHelper.success(res, Response.success_msg.logOut, userDetail);
+    } catch (error) {
+      console.error("Error during signup:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
+  vehicleInformationUpdate: async (req, res) => {
+    try {
+      let pictureOfVehicle = null;
+      if (req.files || req.files.pictureOfVehicle) {
+        pictureOfVehicle = await commonHelper.fileUpload(
+          req.files.pictureOfVehicle,
+          "images",
+        );
+      }
+      let vehicleRegistrationImage = null;
+      if (req.files || req.files.vehicleRegistrationImage) {
+        vehicleRegistrationImage = await commonHelper.fileUpload(
+          req.files.vehicleRegistrationImage,
+          "images",
+        );
+      }
+      let insurancePolicyImage = null;
+      if (req.files || req.files.insurancePolicyImage) {
+        insurancePolicyImage = await commonHelper.fileUpload(
+          req.files.insurancePolicyImage,
+          "images",
+        );
+      }
+      let objToUpate = {
+        pictureOfVehicle: pictureOfVehicle,
+        typeOfVehicle: req.body.typeOfVehicle,
+        vehicleRegistrationImage: vehicleRegistrationImage,
+        registrationExpiryDate: req.body.registrationExpiryDate,
+        insurancePolicyImage: insurancePolicyImage,
+        insuranceExpiryDate: req.body.insuranceExpiryDate,
+        vehicleNumber: req.body.vehicleNumber,
+      };
+      await Models.userModel.update(objToUpate, {
+        where: {
+          id: req.user.id,
+        },
+      });
+      let userDetail = await Models.userModel.findOne({
+        where: {
+          id: req.user.id,
+        },
+      });
+      return commonHelper.success(res, Response.success_msg.logOut, userDetail);
+    } catch (error) {
+      console.error("Error during signup:", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
