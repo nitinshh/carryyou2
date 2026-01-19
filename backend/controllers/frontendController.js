@@ -9,37 +9,6 @@ const helper = require("../helpers/validation.js");
 const Models = require("../models/index");
 const Response = require("../config/responses.js");
 
-const generateAlphaNumericInviteCode = (length = 12) => {
-  const chars =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-
-  let code = "";
-  for (let i = 0; i < length; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-};
-
-
-const generateUniqueInviteCode = async () => {
-  let code;
-  let exists = true;
-
-  while (exists) {
-    code = generateAlphaNumericInviteCode(12);
-
-    const found = await Models.invitedCodeModel.findOne({
-      where: { code },
-    });
-
-    exists = !!found;
-  }
-
-  return code;
-};
-
-
-
 
 module.exports = {
   test: async (req, res) => {
@@ -153,8 +122,6 @@ module.exports = {
         profilePicture,
         phoneNumber: req.body.phoneNumber || null,
         countryCode: req.body.countryCode || null,
-        btcWalletAddress: req.body.btcWalletAddress || null,
-        supportEmail: req.body.supportEmail || null,
       };
 
       await Models.userModel.update(objToSave, {

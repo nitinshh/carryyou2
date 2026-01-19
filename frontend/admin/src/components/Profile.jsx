@@ -19,8 +19,6 @@ const Profile = () => {
   const fileInputRef = useRef();
   const { putData } = useApi();
   const [countryCodes, setCountryCodes] = useState([]);
-  const [btcWalletAddress, setBtcWalletAddress] = useState("");
-  const [supportEmail, setSupportEmail] = useState("");
 
   const [changed, setChanged] = useState(false);
 
@@ -30,9 +28,7 @@ const Profile = () => {
         !!profilePicture ||
         imageRemoved ||
         phoneNumber !== user?.phoneNumber ||
-        countryCode !== user?.countryCode ||
-        btcWalletAddress !== user?.btcWalletAddress ||
-        supportEmail !== user?.supportEmail
+        countryCode !== user?.countryCode
     );
   }, [
     name,
@@ -41,8 +37,6 @@ const Profile = () => {
     imageRemoved,
     phoneNumber,
     countryCode,
-    btcWalletAddress,
-    supportEmail,
   ]);
 
   useEffect(() => {
@@ -54,9 +48,6 @@ const Profile = () => {
       setCountryCode(userData.countryCode || "");
       setImagePreview(userData.profilePicture || null);
       setInitialName(userData.fullName || "");
-
-      setBtcWalletAddress(userData.btcWalletAddress || "");
-      setSupportEmail(userData.supportEmail || "");
     }
   }, [successMessage]);
 
@@ -108,8 +99,6 @@ const Profile = () => {
     formData.append("name", name);
     formData.append("phoneNumber", phoneNumber);
     formData.append("countryCode", countryCode);
-    formData.append("btcWalletAddress", btcWalletAddress);
-    formData.append("supportEmail", supportEmail);
 
     if (profilePicture) {
       formData.append("image", profilePicture);
@@ -128,8 +117,6 @@ const Profile = () => {
       setInitialName(`${response.body.fullName}`);
       setPhoneNumber(response.body.phoneNumber || "");
       setCountryCode(response.body.countryCode || "");
-      setBtcWalletAddress(response.body.btcWalletAddress || "");
-      setSupportEmail(response.body.supportEmail || "");
 
       // ✅ Only reset profilePicture (new file) but set imagePreview from backend
       setProfilePicture(null);
@@ -305,34 +292,6 @@ const Profile = () => {
                       className="flex-1 px-4 py-3 border-2 border-slate-200 rounded-xl bg-white text-slate-800 focus:ring-4 focus:ring-slate-900/10 focus:border-slate-900 transition-all duration-200"
                     />
                   </div>
-                </div>
-
-                {/* BTC Wallet Address */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    BTC Wallet Address
-                  </label>
-                  <input
-                    type="text"
-                    value={btcWalletAddress}
-                    onChange={(e) => setBtcWalletAddress(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl"
-                    placeholder="Enter BTC wallet address"
-                  />
-                </div>
-
-                {/* Support Email */}
-                <div className="space-y-2">
-                  <label className="text-sm font-semibold text-slate-700">
-                    Support Email
-                  </label>
-                  <input
-                    type="email"
-                    value={supportEmail}
-                    onChange={(e) => setSupportEmail(e.target.value)}
-                    className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl"
-                    placeholder="Enter support email"
-                  />
                 </div>
 
                 {/* Save Button */}

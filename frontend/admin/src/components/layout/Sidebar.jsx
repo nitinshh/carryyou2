@@ -36,7 +36,7 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
         <div className="w-36 h-16 overflow-hidden">
           {" "}
           <img
-            src="./logo.svg"
+            src="./logo.jpeg"
             alt="Logo"
             className="w-full h-full object-contain"
           />

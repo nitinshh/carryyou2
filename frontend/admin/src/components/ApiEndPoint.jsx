@@ -1,8 +1,8 @@
 // local system url
-const API_BASE_URL = "http://localhost:4005";
+// const API_BASE_URL = "http://localhost:4005";
 
 // server base url
-// const API_BASE_URL = "http://52.66.122.106:4005";
+const API_BASE_URL = "http://52.66.122.106:4005";
  
 const ApiEndPoint = {
   baseUrl:`${API_BASE_URL}`,
