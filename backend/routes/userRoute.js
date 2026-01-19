@@ -67,8 +67,7 @@ module.exports = function (io) {
 
   // booking regarding api
   router.post("/createBooking",authentication,controller.userController.createBooking(io))
-  router.get("/bookingListUser",authentication,controller.userController.bookingListUser)
-  router.get("/bookingListDriver",authentication,controller.userController.bookingListDriver)
+  router.get("/bookingList",authentication,controller.userController.bookingList)
   router.post("/bookingAcceptReject",authentication,controller.userController.bookingAcceptReject)
   router.get(
     "/stripeDetailReturn",

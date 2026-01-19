@@ -19,6 +19,8 @@ var success_msg = {
   driverList:"Driver list get successfully",
   bookingCreate:"Ride booking create successfully",
   bookingList:"Booking list get successfully",
+  bookingAccept:"Booking accept successfully",
+  bookingReject:"Booking reject succesfully"
 };
 
 var failed_msg = {

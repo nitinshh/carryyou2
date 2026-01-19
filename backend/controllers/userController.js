@@ -898,7 +898,6 @@ module.exports = {
     try {
       let objToSave = {
         userId: req.user.id,
-        driverId: req.body.driverId,
         pickUpLocation: req.body.pickUpLocation,
         pickUpLatitude: req.body.pickUpLatitude,
         pickUpLongitude: req.body.pickUpLongitude,
@@ -932,19 +931,42 @@ module.exports = {
     }
   },
 
-  bookingListUser: async (req, res) => {
+  bookingList: async (req, res) => {
     try {
-      let response = await Models.bookingList.findAll({
-        where: {
-          userId: req.user.id,
-        },
-        include: [
-          {
-            model: Models.userModel,
-            as: "driver",
+      let response;
+      if (req.user && req.user.role == 1) {
+        response = await Models.bookingList.findAll({
+          where: {
+            userId: req.user.id,
           },
-        ],
-      });
+          include: [
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+          ],
+        });
+      } else {
+        response = await Models.bookingList.findAll({
+          where: {
+            driverId: req.user.id,
+            // ❌ Exclude rejected bookings
+            id: {
+              [Op.notIn]: literal(`(
+                SELECT bookingId
+                FROM bookingRejectBy
+                WHERE driverId = '${req.user.id}'
+              )`),
+            },
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+          ],
+        });
+      }
 
       return commonHelper.success(
         res,
@@ -961,25 +983,74 @@ module.exports = {
     }
   },
 
-  bookingListDriver: async (req, res) => {
+  bookingAcceptReject: (io) => async (req, res) => {
     try {
-      let response = await Models.bookingList.findAll({
-        where: {
-          driverId: req.user.id,
-        },
-        include: [
-          {
-            model: Models.userModel,
-            as: "user",
+      if (req.body.status == 1) {
+        await Models.bookingModel.update(
+          { status: 1 },
+          { where: { id: req.body.bookingId } },
+        );
+        let response = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId,
           },
-        ],
-      });
-
-      return commonHelper.success(
-        res,
-        Response.success_msg.bookingList,
-        response,
-      );
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.userId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit(bookingAcceptReject);
+        return commonHelper.success(
+          res,
+          Response.success_msg.bookingAccept,
+          response,
+        );
+      } else if (req.body.status == 2) {
+        await Models.bookingModel.update(
+          { status: 1 },
+          { where: { id: req.body.bookingId } },
+        );
+        let objToSave={
+          driverId:req.user.id,
+          bookingId:req.body.bookingId
+        }
+        await Models.bookingRejectedByModel.create(objToSave)
+        let response = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.userId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit(bookingAcceptReject);
+        return commonHelper.success(
+          res,
+          Response.success_msg.bookingReject,
+          response,
+        );
+      }
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
@@ -987,19 +1058,6 @@ module.exports = {
         Response.error_msg.intSerErr,
         error.message,
       );
-    }
-  },
-
-  bookingAcceptReject:async(req,res)=>{
-    try {
-      if(req.body.status==1){}
-    } catch (error) {
-      console.log("error", error);
-      return commonHelper.error(
-        res,
-        Response.error_msg.intSerErr,
-        error.message,
-      );      
     }
   },
 
