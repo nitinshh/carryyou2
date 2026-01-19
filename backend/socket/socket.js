@@ -614,7 +614,7 @@ module.exports = function (io) {
                 keyId:String(getMsg.id)
               }
               let type="12"
-              await helper.sendFirebasePush(user.deviceToken,objToSend,type,user.deviceType);
+              // await helper.sendFirebasePush(user.deviceToken,objToSend,type,user.deviceType);
             }
 
             // Emit the message to the sender's socket
@@ -727,7 +727,7 @@ module.exports = function (io) {
                 keyId:String(getMsg.id)
               }
               let type="12"
-              await helper.sendFirebasePush(user.deviceToken,objToSend,type,deviceType);
+              // await helper.sendFirebasePush(user.deviceToken,objToSend,type,deviceType);
 
             }
 
