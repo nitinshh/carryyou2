@@ -9,4 +9,6 @@ module.exports = {
   cmsModel: require("./cmsModel")(Sequelize, sequelize, Sequelize.DataTypes),
   contactUsModel: require("./contactUsModel")(Sequelize, sequelize, Sequelize.DataTypes),
   transactionModel: require("./transactionModel")(Sequelize, sequelize, Sequelize.DataTypes),
+  chatConstantModel:require("./chatConstantModel")(Sequelize, sequelize, Sequelize.DataTypes),
+  messageModel:require("./messageModel")(Sequelize, sequelize, Sequelize.DataTypes),
 };
