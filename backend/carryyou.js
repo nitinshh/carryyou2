@@ -22,6 +22,10 @@ const io = require("socket.io")(server);
 
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/userRoute")(io);
+const adminRouter = require("./routes/adminRouter")();
+
+const CLIENT_ADMIN_URL = process.env.CLIENT_ADMIN_URL || "http://localhost:5173";
+
 // Set EJS as view engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
@@ -56,11 +60,20 @@ const swaggerOptions = {
   }, 
 };
 
+const adminBuildPath = path.join(__dirname, '../frontend/admin/dist');
+
+app.use('/admin', express.static(adminBuildPath));
+app.get('/admin/*', (req, res) => {
+  res.sendFile(path.join(adminBuildPath, 'index.html'));
+});
+
+
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(null, swaggerOptions));
 
 // Routes
 app.use("/", indexRouter);
 app.use("/users", usersRouter);
+app.use("/api", adminRouter)
 
 // 404 Handler
 app.use((req, res, next) => next(createError(404)));
