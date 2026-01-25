@@ -1009,7 +1009,7 @@ module.exports = {
           where: { id: response.userId },
           raw: true,
         });
-        io.to(userDetail.socketId).emit(bookingAcceptReject);
+        io.to(userDetail.socketId).emit("bookingAcceptReject",response);
         return commonHelper.success(
           res,
           Response.success_msg.bookingAccept,
@@ -1044,7 +1044,7 @@ module.exports = {
           where: { id: response.userId },
           raw: true,
         });
-        io.to(userDetail.socketId).emit(bookingAcceptReject);
+        io.to(userDetail.socketId).emit("bookingAcceptReject",response);
         return commonHelper.success(
           res,
           Response.success_msg.bookingReject,
