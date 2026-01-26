@@ -21,7 +21,8 @@ var success_msg = {
   bookingList:"Booking list get successfully",
   bookingAccept:"Booking accept successfully",
   bookingReject:"Booking reject succesfully",
-  typeOfVechileList:"List of vechile type get successfully."
+  typeOfVechileList:"List of vechile type get successfully.",
+  priceList:"Vechile with price list get successfully"
 };
 
 var failed_msg = {
