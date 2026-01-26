@@ -79,6 +79,7 @@ module.exports = function (io) {
     "/stripeDetailReturn",
     controller.userController.stripeDetailReturn
   );
+  router.post("/webHookFrontEnd",controller.userController.webHookFrontEnd)
   router.post(
     "/stripeIntent",
     authentication,

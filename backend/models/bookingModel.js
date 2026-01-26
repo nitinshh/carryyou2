@@ -95,7 +95,12 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         type:DataTypes.TIME,
         allowNull:true,
         defaultValue:null
-      }
+      },
+      paymentStatus:{
+        type:DataTypes.INTEGER,
+        allowNull:true,
+        defaultValue:0
+      },
     },
     {
       timestamps: true,

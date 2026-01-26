@@ -101,7 +101,7 @@ module.exports = {
         req,
         user,
         subject,
-        emailLink
+        emailLink,
       );
       // await transporter.sendMail(emailTamplate);
       const token = jwt.sign(
@@ -339,11 +339,11 @@ module.exports = {
           where: {
             email: email,
           },
-        }
+        },
       );
       const resetUrl = `${req.protocol}://${await commonHelper.getHost(
         req,
-        res
+        res,
       )}/users/resetPassword?token=${resetToken}`; // Add your URL
       let subject = "Reset Password";
       let emailLink = "forgotPassword";
@@ -353,7 +353,7 @@ module.exports = {
         user,
         resetUrl,
         subject,
-        emailLink
+        emailLink,
       );
       await transporter.sendMail(emailTamplate);
       return commonHelper.success(res, Response.success_msg.passwordLink);
@@ -362,7 +362,7 @@ module.exports = {
       return commonHelper.error(
         res,
         Response.error_msg.forgPwdErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -389,11 +389,11 @@ module.exports = {
           where: {
             email: email,
           },
-        }
+        },
       );
       const resetUrl = `${req.protocol}://${await commonHelper.getHost(
         req,
-        res
+        res,
       )}/users/resetPassword?token=${resetToken}`; // Add your URL
       let subject = "Reset Password";
       const transporter = await commonHelper.nodeMailer();
@@ -401,7 +401,7 @@ module.exports = {
         req,
         user,
         resetUrl,
-        subject
+        subject,
       );
       await transporter.sendMail(emailTamplate);
       return commonHelper.success(res, Response.success_msg.passwordLink);
@@ -410,7 +410,7 @@ module.exports = {
       return commonHelper.error(
         res,
         Response.error_msg.forgPwdErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -423,7 +423,7 @@ module.exports = {
       return commonHelper.error(
         res,
         Response.error_msg.resetPwdErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -453,7 +453,7 @@ module.exports = {
 
       const hashedNewPassword = await commonHelper.bcryptData(
         newPassword,
-        process.env.SALT
+        process.env.SALT,
       );
 
       await Models.userModel.update(
@@ -462,7 +462,7 @@ module.exports = {
           resetToken: null,
           resetTokenExpires: null,
         },
-        { where: { id: id } }
+        { where: { id: id } },
       );
 
       return res.render("successPassword", {
@@ -473,7 +473,7 @@ module.exports = {
       return commonHelper.error(
         res,
         Response.error_msg.chngPwdErr,
-        error.message
+        error.message,
       );
     }
   },
@@ -684,7 +684,7 @@ module.exports = {
 
       const user = await Models.userModel.findOne({
         where: {
-           email
+          email,
         },
         raw: true,
       });
@@ -768,14 +768,14 @@ module.exports = {
         },
         { where: { id: user.id } },
       );
-        let subject = "OTP";
+      let subject = "OTP";
       let emailLink = "otp";
       const transporter = await commonHelper.nodeMailer();
       const emailTamplate = await commonHelper.forgetPasswordLinkHTML(
         req,
         user,
         subject,
-        emailLink
+        emailLink,
       );
       // await transporter.sendMail(emailTamplate);
       return commonHelper.success(res, Response.success_msg.otpResend, {
@@ -991,7 +991,7 @@ module.exports = {
       );
     }
   },
-  
+
   getPriceListWithVechile: async (req, res) => {
     try {
       const { pickUpLatitude, pickUpLongitude, dropLatitude, dropLongitude } =
@@ -1087,10 +1087,59 @@ module.exports = {
         amount: req.body.amount,
         distance: req.body.distance,
         typeOfVehicleId: req.body.typeOfVehicleId,
-        scheduleType:req.body.scheduleType, //1 for instant and 2 for schedule for future
-        bookingDate:req.body.bookingDate||null,
-        bookingTime:req.body.bookingDate||null
+        scheduleType: req.body.scheduleType, //1 for instant and 2 for schedule for future
+        bookingDate: req.body.bookingDate || null,
+        bookingTime: req.body.bookingDate || null,
+        paymentStatus:0
       });
+
+      let userDetail = await Models.userModel.findOne({
+        where: { id: req.user.id },
+        raw: true,
+      });
+      const ephemeralKey = await stripe.ephemeralKeys.create(
+        { customer: userDetail.customerId },
+        { apiVersion: "2022-11-15" },
+      );
+      const amount = parseFloat((req.body.amount * 100).toFixed(2));
+
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "USD",
+        customer: userDetail.customerId,
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+      let result = {
+        paymentIntent: paymentIntent,
+        ephemeralKey: ephemeralKey.secret,
+        customer: userDetail.customerId,
+        publishableKey: process.env.STRIPE_PK_KEY,
+        transactionId: paymentIntent.id,
+      };
+      let adminId = await Models.userModel.findOne({
+        where: {
+          role: 0,
+        },
+        raw: true,
+      });
+      let objToSave = {
+        senderId: req.user.id,
+        receiverId: adminId.id,
+        amount: req.body.amount,
+        transactionId: paymentIntent.id,
+        bookingId:booking.id
+      };
+      await Models.transactionModel.create(objToSave);
+      return commonHelper.success(
+        res,
+        Response.success_msg.paymentIntent,
+        result,
+      );
+
+
 
       // 2️⃣ Find nearby drivers (10 KM)
       const drivers = await Models.userModel.findAll({
@@ -1193,7 +1242,7 @@ module.exports = {
           where: {
             status: 0, // ⏳ pending bookings only
             driverId: null, // not accepted by any driver
-
+            paymentStatus:1,
             // ❌ Exclude rejected by this driver
             id: {
               [Op.notIn]: literal(`(
@@ -1423,119 +1472,125 @@ module.exports = {
 
   stripeIntent: async (req, res) => {
     try {
-      console.log("🔔 stripeIntent req.body:", req.body);
+      let userDetail = await Models.userModel.findOne({
+        where: { id: req.user.id },
+        raw: true,
+      });
+      const ephemeralKey = await stripe.ephemeralKeys.create(
+        { customer: userDetail.customerId },
+        { apiVersion: "2022-11-15" },
+      );
+      const amount = parseFloat((req.body.amount * 100).toFixed(2));
 
-      const { totalAmount, orderId, paymentMethod } = req.body;
-      const amountInCents = Math.round(Number(totalAmount) * 100);
-
-      const isCard = paymentMethod === 0; // PaymentSheet
-      const isGooglePay = paymentMethod === 2; // PlatformPay (Google Pay)
-
-      let customerId = null;
-      let ephemeralKey = null;
-
-      /* ======================================================
-         STEP 1: CREATE CUSTOMER ONLY FOR CARD (PaymentSheet)
-         ====================================================== */
-      if (isCard) {
-        const userDetail = await Models.userModel.findOne({
-          where: { id: req.user.id },
-        });
-
-        if (!userDetail) {
-          return commonHelper.failed(res, "User not found");
-        }
-
-        if (!userDetail.customerId) {
-          const customer = await stripe.customers.create({
-            email: userDetail.email,
-            metadata: { userId: req.user.id },
-          });
-
-          customerId = customer.id;
-
-          await Models.userModel.update(
-            { customerId },
-            { where: { id: req.user.id } },
-          );
-        } else {
-          customerId = userDetail.customerId;
-        }
-
-        // Ephemeral key ONLY for PaymentSheet
-        ephemeralKey = await stripe.ephemeralKeys.create(
-          { customer: customerId },
-          { apiVersion: "2023-10-16" },
-        );
-      }
-
-      /* ======================================================
-         STEP 2: CREATE PAYMENT INTENT
-         ====================================================== */
-      const paymentIntentParams = {
-        amount: amountInCents,
-        currency: "eur",
-        metadata: {
-          orderId,
-          userId: req.user.id,
-          paymentMethod: paymentMethod.toString(),
-        },
-      };
-
-      // ✅ CARD (PaymentSheet)
-      if (isCard) {
-        paymentIntentParams.customer = customerId;
-        paymentIntentParams.automatic_payment_methods = {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "USD",
+        customer: userDetail.customerId,
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+        automatic_payment_methods: {
           enabled: true,
-          allow_redirects: "never",
-        };
-      }
-
-      // ✅ GOOGLE PAY (PlatformPay)
-      if (isGooglePay) {
-        paymentIntentParams.payment_method_types = ["card"];
-        // ❌ NO customer
-        // ❌ NO ephemeralKey
-        // ❌ NO automatic_payment_methods
-      }
-
-      console.log("💳 Creating PaymentIntent with:", paymentIntentParams);
-
-      const paymentIntent =
-        await stripe.paymentIntents.create(paymentIntentParams);
-
-      console.log("✅ PaymentIntent created:", paymentIntent.id);
-
-      /* ======================================================
-         STEP 3: SAVE TRANSACTION
-         ====================================================== */
-      await Models.transactionModel.create({
-        transactionId: paymentIntent.id,
-        userId: req.user.id,
-        orderId,
-        currency: "EUR",
-        amount: totalAmount,
-        paymentStatus: 0,
-        paymentMethod,
+        },
       });
-
-      /* ======================================================
-         STEP 4: SEND RESPONSE
-         ====================================================== */
-      return commonHelper.success(res, "PaymentIntent created", {
-        clientSecret: paymentIntent.client_secret,
-        customer: isCard ? customerId : null,
-        ephemeralKey: isCard ? ephemeralKey?.secret : null,
+      let result = {
+        paymentIntent: paymentIntent,
+        ephemeralKey: ephemeralKey.secret,
+        customer: userDetail.customerId,
+        publishableKey: process.env.STRIPE_PK_KEY,
         transactionId: paymentIntent.id,
-        publishableKey: process.env.STRIPE_PUBLIC_KEY,
+      };
+      let adminId = await Models.userModel.findOne({
+        where: {
+          role: 0,
+        },
+        raw: true,
       });
+      let objToSave = {
+        senderId: req.user.id,
+        receiverId: adminId.id,
+        amount: req.body.amount,
+        transactionId: paymentIntent.id,
+      };
+      await Models.transactionModel.create(objToSave);
+      return commonHelper.success(
+        res,
+        Response.success_msg.paymentIntent,
+        result,
+      );
     } catch (error) {
-      console.error("❌ stripeIntent error:", error);
-
+      console.log("error", error);
       return commonHelper.error(
         res,
-        "Stripe intent error",
-        error.message || "Failed to create PaymentIntent",
+        Response.error_msg.internalServerError,
+        error.message,
+      );
+    }
+  },
+
+  webHookFrontEnd: async (req, res) => {
+    try {
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        req.body.transactionId,
+      );
+      let transactionDetail=await Models.transactionModel.findOne({where:{id:req.body.transactionId},raw:true})
+    
+      if( paymentIntent.status === "succeeded"){
+          await Models.transactionModel.update(
+        {
+          paymentStatus:1
+        },
+        {
+          where: {
+            transactionId: req.body.transactionId,
+          },
+        },
+      );
+        await Models.bookingModel.update({paymentStatus:1},{where:{id:transactionDetail.bookingId}})
+        let bookingDetail=await Models.bookingModel.findOne({where:{id:transactionDetail.bookingId},raw:true})
+        // 2️⃣ Find nearby drivers (10 KM)
+      const drivers = await Models.userModel.findAll({
+        attributes: [
+          "id",
+          "socketId",
+          "latitude",
+          "longitude",
+          [
+            Sequelize.literal(`
+            (6371 * acos(
+              cos(radians(${bookingDetail.pickUpLatitude}))
+              * cos(radians(latitude))
+              * cos(radians(longitude) - radians(${bookingDetail.pickUpLongitude}))
+              + sin(radians(${bookingDetail.pickUpLatitude}))
+              * sin(radians(latitude))
+            ))
+          `),
+            "distance",
+          ],
+        ],
+        where: {
+          role: 2, // DRIVER ROLE
+          isOnline: 1,
+          socketId: { [Op.ne]: null },
+        },
+        having: Sequelize.literal("distance <= 10"),
+        order: [[Sequelize.literal("distance"), "ASC"]],
+        raw: true,
+      });
+
+      // 3️⃣ Emit to all nearby drivers
+      drivers.forEach((driver) => {
+        io.to(driver.socketId).emit("createBooking", booking);
+      });
+      }
+      return commonHelper.success(
+        res,
+        Response.success_msg.stripeWebHookFrontEnd,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
       );
     }
   },

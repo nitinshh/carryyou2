@@ -8,24 +8,32 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: null,
       },
-      userId: {
+      senderId: {
         type: Sequelize.UUID,
-        allowNull: true,
-        defaultValue: null,
+        allowNull: false,
         references: {
-          model: "users",
-          key: "id",
+          model: "users", // name of Target model
+          key: "id", // key in Target model that we"re referencing
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-      driverId: {
+      receiverId: {
         type: Sequelize.UUID,
-        allowNull: true,
-        defaultValue: null,
+        allowNull: false,
         references: {
-          model: "users",
-          key: "id",
+          model: "users", // name of Target model
+          key: "id", // key in Target model that we"re referencing
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
+      bookingId: {
+        type: Sequelize.UUID,
+        allowNull: false,
+        references: {
+          model: "bookings", // name of Target model
+          key: "id", // key in Target model that we"re referencing
         },
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
@@ -33,7 +41,7 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
       currency: {
         type: DataTypes.STRING(10),
         allowNull: true,
-        defaultValue: 'USD'
+        defaultValue: "USD",
       },
       bookingId: {
         type: Sequelize.UUID,
@@ -60,6 +68,6 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
     {
       timestamps: true,
       tableName: "transactions",
-    }
+    },
   );
 };
