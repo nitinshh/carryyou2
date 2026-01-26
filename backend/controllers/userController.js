@@ -1101,7 +1101,9 @@ module.exports = {
         { customer: userDetail.customerId },
         { apiVersion: "2022-11-15" },
       );
-      const amount = parseFloat((req.body.amount * 100).toFixed(2));
+      // const amount = parseFloat((req.body.amount * 100).toFixed(2));
+      const amount = parseInt(Number(req.body.amount) * 100);
+
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
