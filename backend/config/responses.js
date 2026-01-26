@@ -23,7 +23,8 @@ var success_msg = {
   bookingReject:"Booking reject succesfully",
   typeOfVechileList:"List of vechile type get successfully.",
   priceList:"Vechile with price list get successfully",
-  paymentIntent:"Payment intent create successfully"
+  paymentIntent:"Payment intent create successfully",
+  stripeWebHookFrontEnd:"Stripe hit successfully"
 };
 
 var failed_msg = {
