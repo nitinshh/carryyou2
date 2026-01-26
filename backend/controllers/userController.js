@@ -567,13 +567,7 @@ module.exports = {
     try {
       const schema = Joi.object({
         countryCode: Joi.string().required(),
-        phoneNumber: Joi.string()
-          .pattern(/^[0-9]{10}$/)
-          .required()
-          .messages({
-            "string.pattern.base":
-              "The phone number must be exactly 10 digits.",
-          }),
+        phoneNumber: Joi.string().required(),
         otp: Joi.string().required(),
       });
 
@@ -647,13 +641,7 @@ module.exports = {
       ======================== */
       const schema = Joi.object({
         countryCode: Joi.string().required(),
-        phoneNumber: Joi.string()
-          .pattern(/^[0-9]{10}$/)
-          .required()
-          .messages({
-            "string.pattern.base":
-              "The phone number must be exactly 10 digits.",
-          }),
+        phoneNumber: Joi.string().required()
       });
 
       const payload = await helper.validationJoi(req.body, schema);
