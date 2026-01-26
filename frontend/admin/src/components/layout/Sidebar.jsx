@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users } from "lucide-react";
+import { Home, Users,Car,FileText, HelpCircle, Info, ShieldCheck } from "lucide-react";
 
 const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
   const location = useLocation();
@@ -36,7 +36,8 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
         <div className="w-36 h-16 overflow-hidden">
           {" "}
           <img
-            src="./logo.jpeg"
+            // src="/logo.jpeg"
+            src={`${import.meta.env.BASE_URL}logo.jpeg`}
             alt="Logo"
             className="w-full h-full object-contain"
           />
@@ -63,6 +64,36 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
               routes: ["/users_listing", "/users_edit", "/users_view"],
               icon: <Users />,
               label: "Users",
+            },
+              {
+              to: "/driver_listing",
+              routes: ["/driver_listing", "/driver_edit", "/driver_view"],
+              icon: <Car />,
+              label: "Driver",
+            },
+             {
+              to: "/contactUs_listing",
+              routes: ["/contactUs_listing", "/contactUs_view"],
+              icon: <HelpCircle />,
+              label: "Contact Us",
+            },
+            {
+              to: "/aboutUs",
+              routes: ["/aboutUs"],
+              icon: <Info />,
+              label: "About Us",
+            },
+            {
+              to: "/privacyPolicy",
+              routes: ["/privacyPolicy"],
+              icon: <ShieldCheck />,
+              label: "Privacy Policy",
+            },
+            {
+              to: "/termsAndCondition",
+              routes: ["/termsAndCondition"],
+              icon: <FileText />,
+              label: "Terms & Condition",
             },
           ].map((item, index) => (
             <li key={index}>

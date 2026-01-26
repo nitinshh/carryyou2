@@ -4,6 +4,7 @@ import { formatDistanceToNow } from "date-fns";
 import {
   Users,
   ChevronDown,
+  Car,
 } from "lucide-react";
 import {
   LineChart,
@@ -28,7 +29,7 @@ const Dashboard = () => {
   );
   const [statsData, setStatsData] = useState({
     userCount: 0,
-    
+    driverCount:0,
     recentUser: null,
     recentUserUpdateProfile: null,
     monthData: [],
@@ -92,6 +93,7 @@ const Dashboard = () => {
         if (response && response.body) {
           setStatsData({
             userCount: response.body.userCount || 0,
+            driverCount:response.body.driverCount ||0,
             recentUser: response.body.recentUser || null,
             recentUserUpdateProfile:
               response.body.recentUserUpdateProfile || null,
@@ -140,6 +142,13 @@ const Dashboard = () => {
       count: statsData.userCount,
       icon: <Users size={20} />,
       path: "/users_listing",
+    },
+      {
+      id: 1,
+      title: "Driver",
+      count: statsData.driverCount,
+      icon: <Car size={20} />,
+      path: "/driver_listing",
     },
   ];
 

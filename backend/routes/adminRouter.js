@@ -5,12 +5,13 @@ const {authentication} = require('../middlewares/authentication');
 
 module.exports=function(){
      router.post('/login', controller.frontendController.login);
-     router.use(authentication)
+     // router.use(authentication)
      router.post('/logOut',controller.frontendController.logOut);
      router.put("/updateProfile",controller.frontendController.updateProfile)
      router.put("/changePassword",controller.frontendController.changePassword)
      router.get("/dashboard",controller.frontendController.dashboard)
      router.get("/allUser",controller.frontendController.allUser)
+     router.get("/allDriver",controller.frontendController.allDriver)
      router.get("/getDetail/:id",controller.frontendController.getDetail)
      router.put("/userStatusChange",controller.frontendController.userStatusChange) 
 
@@ -27,6 +28,15 @@ module.exports=function(){
      router.get("/getTypeOfVechleList",controller.frontendController.getTypeOfVechileList)
      router.put("/updateTypeOfVechile",controller.frontendController.updateTypeOfVechile)
      router.delete("/deleteTypeOfVechile",controller.frontendController.deleteTypeOfVechile)
+
+
+     router.get("/cms/:type",controller.frontendController.cms)
+     router.put("/cmsUpdate",controller.frontendController.cmsUpdate)
+     // router.get("/cmsCreate",controller.frontendController.cmsCreate)
+
+     router.get("/contactUsList",controller.frontendController.contactUsList)
+     router.delete("/contactUsDelete/:id",controller.frontendController.contactUsDelete)
+     router.get("/contactUsDetail/:id",controller.frontendController.contactUsDetail)
 
      return router
 }

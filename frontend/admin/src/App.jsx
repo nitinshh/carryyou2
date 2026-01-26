@@ -1,6 +1,7 @@
 import "./App.css";
 import { ToastContainer } from "react-toastify";
 import { Routes, Route, Navigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 
 import LayoutWrapper from "./components/layout/LayoutWrapper";
 
@@ -11,9 +12,14 @@ import Resetpassword from "./components/Resetpassword";
 import UserList from "./pages/User/UserList";
 import UserView from "./pages/User/UserView";
 import UserEdit from "./pages/User/UserEdit";
-
-import { useState, useEffect } from "react";
-
+import DriverList from "./pages/Driver/DriverList"
+import DriverView from  "./pages/Driver/DriverView"
+import DriverEdit from "./pages/Driver/DriverEdit";
+import AboutUs from "./pages/CMS/AboutUs";
+import PrivacyPolicy from "./pages/CMS/PrivacyPolicy";
+import TermsAndCondition from "./pages/CMS/TermsAndCondition";
+import ConstactUsList from "./pages/ContactUs/ContactUsList";
+import ContactUsView from "./pages/ContactUs/ContactUsView";
 function App() {
   // const isAuthenticated = false;
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -54,7 +60,23 @@ function App() {
             <Route path="/users_edit/:userId" element={<UserEdit />} />
             <Route path="/users_view/:userId" element={<UserView />} />
 
+            <Route path="/driver_listing" element={<DriverList />} />
+            <Route path="/driver_edit/:userId" element={<DriverEdit />} />
+            <Route path="/driver_view/:userId" element={<DriverView />} />
 
+
+            <Route path="/aboutUs" element={<AboutUs />} />
+            <Route path="/privacyPolicy" element={<PrivacyPolicy />} />
+            <Route path="/termsAndCondition" element={<TermsAndCondition />} />
+
+            
+            <Route path="/contactUs_listing" element={<ConstactUsList />} />
+            <Route
+              path="/contactUs_view/:contactUsId"
+              element={<ContactUsView />}
+            />
+
+            
             {/* Redirect all unmatched routes to dashboard */}
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Route>

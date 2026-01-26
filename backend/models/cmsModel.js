@@ -7,7 +7,7 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         type: DataTypes.STRING(255),
         allowNull: true
       },
-      descriptionh: {
+      description: {
         type: DataTypes.TEXT,
         allowNull: false,
       },

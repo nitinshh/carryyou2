@@ -186,11 +186,15 @@ module.exports = {
       const userCount = await Models.userModel.count({
         where: {
           role: {
-            isAddedByAdmin: 0,
             [Op.eq]: 1, // "role" not equal to 1
           },
         },
       });
+      const driverCount=await Models.userModel.count({
+        where:{
+          role:2
+        }
+      })
       const recentUser = await Models.userModel.findOne({
         where: {
           role: 1,
@@ -243,6 +247,7 @@ module.exports = {
       });
       let response = {
         userCount: userCount,
+        driverCount:driverCount,
         recentUser: recentUser,
         recentUserUpdateProfile: recentUserUpdateProfile,
         monthData: monthData,
@@ -271,7 +276,50 @@ module.exports = {
           : 0;
       let where = {
         role: 1,
-        isAddedByAdmin: 0
+      };
+      if (req.query && req.query.search) {
+        const search = `%${req.query.search}%`;
+        where = {
+          [Op.or]: [
+            {
+              fullName: {
+                [Op.like]: "%" + search + "%",
+              },
+            },
+            {
+              phoneNumber: {
+                [Op.like]: "%" + search + "%",
+              },
+            },
+          ],
+        };
+      }
+      const response = await Models.userModel.findAndCountAll({
+        where: where,
+        limit: limit,
+        offset: offSet,
+        order: [["createdAt", "DESC"]],
+      });
+      return commonHelper.success(res, Response.success_msg.userList, response);
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+
+  allDriver: async (req, res) => {
+    try {
+      let limit = Number(req.query.limit) || 10;
+      let offSet =
+        Number(req.query.skip) > 0
+          ? Number(req.query.skip) * Number(req.query.limit)
+          : 0;
+      let where = {
+        role: 2,
       };
       if (req.query && req.query.search) {
         const search = `%${req.query.search}%`;
@@ -632,6 +680,163 @@ module.exports = {
     }
   },
 
+  cms: async (req, res) => {
+    try {
+      let response = await Models.cmsModel.findOne({
+        where: {
+          type: req.params.type,
+        },
+      });
+      return commonHelper.success(res, Response.success_msg.cms, response);
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
 
+  cmsUpdate: async (req, res) => {
+    try {
+      await Models.cmsModel.update(
+        {
+          title: req.body.title,
+          description: req.body.description,
+        },
+        {
+          where: {
+            id: req.body.id,
+          },
+        }
+      );
+      return commonHelper.success(res, Response.success_msg.cms);
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+
+   contactUsList: async (req, res) => {
+    try {
+      let limit = Number(req.query.limit) || 10;
+      let offSet =
+        Number(req.query.skip) > 0
+          ? Number(req.query.skip) * Number(req.query.limit)
+          : 0;
+      let where = {};
+      if (req.query && req.query.search) {
+        const search = `%${req.query.search}%`;
+        where = {
+          [Op.or]: [
+            {
+              name: {
+                [Op.like]: "%" + search + "%",
+              },
+            },
+            {
+              email: {
+                [Op.like]: "%" + search + "%",
+              },
+            },
+            {
+              message: {
+                [Op.like]: "%" + search + "%",
+              },
+            },
+          ],
+        };
+      }
+      const response = await Models.contactUsModel.findAndCountAll({
+        where: where,
+        limit: limit,
+        offset: offSet,
+        order: [["createdAt", "DESC"]],
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.contactUsList,
+        response
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+  contactUsDelete: async (req, res) => {
+    try {
+      await Models.contactUsModel.destroy({
+        where: {
+          id: req.params.id,
+        },
+      });
+      return commonHelper.success(res, Response.success_msg.contactUsDelete);
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+  contactUsDetail: async (req, res) => {
+    try {
+      let response = await Models.contactUsModel.findOne({
+        where: {
+          id: req.params.id,
+        },
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.contactUsDetail,
+        response
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+  cmsCreate: async (req, res) => {
+    try {
+      console.log("====", req.body);
+      await Models.cmsModel.create({
+        title: "About Us",
+        description: "test",
+        type: 1,
+      });
+      await Models.cmsModel.create({
+        title: "Privacy Policy",
+        description: "Privacy Policy",
+        type: 2,
+      });
+       await Models.cmsModel.create({
+        title: "Terms & Condition",
+        description: "Terms and condition",
+        type: 3,
+      });
+      return commonHelper.success(res, Response.success_msg.cms);
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
 
 };
