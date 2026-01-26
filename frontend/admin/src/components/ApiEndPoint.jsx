@@ -15,6 +15,7 @@ const ApiEndPoint = {
   DASHBOARD_DATA:`${API_BASE_URL}/api/dashboard`,
   getAllUser:`${API_BASE_URL}/api/allUser`,
   getAllDriver:`${API_BASE_URL}/api/allDriver`,
+  approveRejectDriver:`${API_BASE_URL}/api/approveRejectDriver`,
 
   updateUserDetails: `${API_BASE_URL}/api/updateUserDetails`,
   userStatusChange: `${API_BASE_URL}/api/userStatusChange`,

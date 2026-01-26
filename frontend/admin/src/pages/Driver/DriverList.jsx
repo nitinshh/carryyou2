@@ -8,6 +8,9 @@ import {
   Loader2,
   Pencil,
   Trash2,
+  CheckCircle,
+  XCircle,
+  Clock,
 } from "lucide-react";
 import useApi from "../../components/useApi";
 import ApiEndPoint from "../../components/ApiEndPoint";
@@ -19,16 +22,17 @@ function DriverList() {
   const getInitialStateFromURL = () => {
     const params = new URLSearchParams(window.location.search);
     return {
-      page: Math.max(1, parseInt(params.get("page")) || 1), // Ensure minimum page is 1
+      page: Math.max(1, parseInt(params.get("page")) || 1),
       limit: parseInt(params.get("limit")) || 10,
       search: params.get("search") || "",
     };
   };
-  // State management
+  
   const initialState = getInitialStateFromURL();
   const navigate = useNavigate();
   const [users, setUsers] = useState([]);
   const [statusUpdateLoading, setStatusUpdateLoading] = useState(false);
+  const [approvalLoading, setApprovalLoading] = useState(false);
   const [loading, setLoading] = useState(true);
   const [entriesPerPage, setEntriesPerPage] = useState(initialState.limit);
   const [currentPage, setCurrentPage] = useState(initialState.page);
@@ -39,9 +43,8 @@ function DriverList() {
     initialState.search
   );
 
-  // Get API hook
   const { getData, deleteData, putData } = useApi();
-  // Update URL without causing re-render
+  
   const updateURL = useCallback((page, limit, search) => {
     const params = new URLSearchParams();
     params.set("page", page.toString());
@@ -53,31 +56,28 @@ function DriverList() {
     const newURL = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, "", newURL);
   }, []);
-  // Debounce search query to avoid too many API calls
+  
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearchQuery(searchQuery);
-    }, 500); // 500ms delay
+    }, 500);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Fetch users data with server-side pagination and search
   const fetchUsers = useCallback(
     async (page, limit, search = "") => {
       try {
         setLoading(true);
-        // Calculate skip value (offset)
         const skip = page - 1;
-        // Update URL
         updateURL(page, limit, search);
-        // Prepare query parameters
+        
         const queryParams = new URLSearchParams({
           limit: limit.toString(),
           skip: skip.toString(),
-          ...(search && { search: search.trim() }), // Only add search if it's not empty
+          ...(search && { search: search.trim() }),
         });
-        // Make API call with query parameters
+        
         const response = await getData(
           `${ApiEndPoint.getAllDriver}?${queryParams.toString()}`
         );
@@ -97,33 +97,28 @@ function DriverList() {
       }
     },
     [getData, updateURL]
-  ); // Remove dependencies to prevent infinite re-renders
+  );
 
-  // Fetch users when component mounts or dependencies change
   useEffect(() => {
     fetchUsers(currentPage, entriesPerPage, debouncedSearchQuery);
   }, [currentPage, entriesPerPage, debouncedSearchQuery]);
 
-  // Reset to first page when search query changes (but not on initial load)
   useEffect(() => {
-    // Only reset if we're not on the initial load and search actually changed
     if (debouncedSearchQuery !== initialState.search && currentPage !== 1) {
       setCurrentPage(initialState.page);
     }
-  }, [debouncedSearchQuery]); // Remove entriesPerPage from dependency
+  }, [debouncedSearchQuery]);
 
-  // Reset to first page when entries per page changes
   useEffect(() => {
     if (entriesPerPage !== initialState.limit && currentPage !== 1) {
       setCurrentPage(initialState.page);
     }
   }, [entriesPerPage]);
-  // Handle search input change
+  
   const handleSearchChange = (e) => {
     setSearchQuery(e.target.value);
   };
 
-  // Handle page changes
   const paginate = (pageNumber) => {
     setCurrentPage(pageNumber);
   };
@@ -140,46 +135,81 @@ function DriverList() {
     }
   };
 
-  const handleStatusChange = async (userId, newStatus) => {
-    try {
-      // Set loading state for entire screen
-      setStatusUpdateLoading(true);
-
-      let data = {
-        userId: userId,
-        status: newStatus,
-      };
-      console.log("==", data);
-      let response = await putData(ApiEndPoint.userStatusChange, data, false);
-
-      if (response.code == 200) {
-        Swal.fire("Success", "Status updated successfully", "success");
-        fetchUsers(currentPage, entriesPerPage, debouncedSearchQuery);
-      } else {
-        Swal.fire("Error", "Failed to update status", "error");
-      }
-    } catch (error) {
-      console.error("Status update error:", error);
-      Swal.fire("Error", "Something went wrong!", "error");
-    } finally {
-      // Remove loading state
-      setStatusUpdateLoading(false);
+  // Handle approval status change from dropdown
+  const handleApprovalChange = async (userId, userName, currentStatus, newStatus) => {
+    // Don't do anything if status hasn't changed
+    if (currentStatus === newStatus) {
+      return;
     }
+
+    const getStatusText = (status) => {
+      switch (status) {
+        case 0: return "Pending";
+        case 1: return "Approved";
+        case 2: return "Rejected";
+        default: return "Unknown";
+      }
+    };
+
+    const statusColor = newStatus === 1 ? "#3085d6" : newStatus === 2 ? "#d33" : "#6c757d";
+    
+    Swal.fire({
+      title: "Confirm Status Change",
+      html: `Change status for <strong>"${userName}"</strong> to <strong>${getStatusText(newStatus)}</strong>?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: statusColor,
+      cancelButtonColor: "#6c757d",
+      confirmButtonText: "Yes, change it!",
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          setApprovalLoading(true);
+
+          const data = {
+            userId: userId,
+            adminApprovalStatus: newStatus,
+          };
+
+          const response = await putData(
+            ApiEndPoint.approveRejectDriver,
+            data,
+            false
+          );
+
+          if (response.code === 200) {
+            Swal.fire({
+              icon: "success",
+              title: "Success!",
+              text: `Status changed to ${getStatusText(newStatus)}`,
+              timer: 1500,
+              showConfirmButton: false,
+            });
+            fetchUsers(currentPage, entriesPerPage, debouncedSearchQuery);
+          } else {
+            Swal.fire("Error", "Failed to update status", "error");
+          }
+        } catch (error) {
+          console.error("Approval update error:", error);
+          Swal.fire("Error", "Something went wrong!", "error");
+        } finally {
+          setApprovalLoading(false);
+        }
+      } else {
+        // If cancelled, refresh to reset dropdown
+        fetchUsers(currentPage, entriesPerPage, debouncedSearchQuery);
+      }
+    });
   };
 
-  // Handle entries per page change
   const handleEntriesChange = (e) => {
     const newLimit = parseInt(e.target.value);
     setEntriesPerPage(newLimit);
-    setCurrentPage(1); // Reset to first page
+    setCurrentPage(1);
   };
 
-  // Handle delete user
   const handleDeleteUser = async (userId, userName) => {
-    // if (window.confirm(`Are you sure you want to delete "${userName}"?`)) {
     try {
-      // Add your delete API call here
-
       Swal.fire({
         title: "Are you sure?",
         text: `Are you sure you want to delete "${userName}"?`,
@@ -191,7 +221,8 @@ function DriverList() {
       }).then(async (result) => {
         if (result.isConfirmed) {
           try {
-            // Show success message
+            await deleteData(`${ApiEndPoint.deleteUser}/${userId}`);
+            
             Swal.fire({
               icon: "success",
               title: "Deleted!",
@@ -199,50 +230,34 @@ function DriverList() {
               timer: 1500,
               showConfirmButton: false,
             });
-            await deleteData(`${ApiEndPoint.deleteUser}/${userId}`);
 
-            // Refresh user list
             fetchUsers(currentPage, entriesPerPage, debouncedSearchQuery);
           } catch (error) {
             console.error("Delete error:", error);
 
-            // Show error message
             Swal.fire({
               icon: "error",
               title: "Delete Failed",
               text: error?.response?.data?.message || "Something went wrong!",
             });
           }
-        } else {
-          Swal.fire({
-            icon: "error",
-            title: "Delete Failed",
-            text: "Something went wrong!",
-          });
         }
       });
-
-      // Refresh the current page after deletion
-      // fetchUsers(currentPage, entriesPerPage, debouncedSearchQuery);
 
       console.log("Driver deleted successfully");
     } catch (error) {
       console.error("Error deleting user:", error);
-      // Handle error (show toast/notification)
     }
-    // }
   };
 
-  // Calculate display indices
   const startIndex = (currentPage - 1) * entriesPerPage + 1;
   const endIndex = Math.min(currentPage * entriesPerPage, totalRecords);
 
   return (
     <div className="min-h-screen">
-      {/* Enhanced Full Screen Loader with Pure Blur Background */}
-      {statusUpdateLoading && (
+      {/* Loading Overlay */}
+      {(statusUpdateLoading || approvalLoading) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
-          {/* Pure Blurred Background */}
           <div
             className="absolute inset-0 backdrop-blur-md"
             style={{
@@ -251,7 +266,6 @@ function DriverList() {
             }}
           ></div>
 
-          {/* Crystal Clear Loader */}
           <div className="relative z-10 bg-white bg-opacity-95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-white border-opacity-50">
             <div className="flex flex-col items-center space-y-4">
               <div className="relative">
@@ -270,6 +284,7 @@ function DriverList() {
           </div>
         </div>
       )}
+
       <div className="p-4 sm:p-6 lg:p-8">
         {/* Header Section */}
         <div className="bg-white rounded-t-lg shadow-sm p-6 flex justify-between items-center">
@@ -328,10 +343,9 @@ function DriverList() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     PROFILE&nbsp;PIC.
                   </th>
-                  {/* <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    STATUS
-                  </th> */}
-
+                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    ADMIN&nbsp;APPROVAL
+                  </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     ACTION
                   </th>
@@ -341,7 +355,7 @@ function DriverList() {
                 {loading ? (
                   <tr>
                     <td
-                      colSpan="9"
+                      colSpan="7"
                       className="px-6 py-4 text-center text-gray-500"
                     >
                       Loading...
@@ -350,7 +364,7 @@ function DriverList() {
                 ) : users.length === 0 ? (
                   <tr>
                     <td
-                      colSpan="9"
+                      colSpan="7"
                       className="px-6 py-4 text-center text-gray-500"
                     >
                       {searchQuery
@@ -386,32 +400,34 @@ function DriverList() {
                           </span>
                         )}
                       </td>
-
-                        {/* <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                          <button
-                            onClick={() =>
-                              handleStatusChange(
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex justify-center">
+                          <select
+                            value={user.adminApprovalStatus}
+                            onChange={(e) =>
+                              handleApprovalChange(
                                 user.id,
-                                user.status === 1 ? 0 : 1
+                                user.fullName,
+                                user.adminApprovalStatus,
+                                parseInt(e.target.value)
                               )
                             }
-                            disabled={statusUpdateLoading}
-                            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-300 ${
-                              user.status === 1 ? "bg-green-500" : "bg-red-300"
+                            disabled={approvalLoading}
+                            className={`px-3 py-1.5 rounded-md text-xs font-medium border-2 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer ${
+                              user.adminApprovalStatus === 0
+                                ? "bg-yellow-50 text-yellow-800 border-yellow-200 hover:bg-yellow-100 focus:ring-yellow-300"
+                                : user.adminApprovalStatus === 1
+                                ? "bg-green-50 text-green-800 border-green-200 hover:bg-green-100 focus:ring-green-300"
+                                : "bg-red-50 text-red-800 border-red-200 hover:bg-red-100 focus:ring-red-300"
                             }`}
                           >
-                            <span
-                              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-300 ${
-                                user.status === 1
-                                  ? "translate-x-6"
-                                  : "translate-x-1"
-                              }`}
-                            />
-                          </button>
-                        </td> */}
-
+                            <option value={0}>Pending</option>
+                            <option value={1}>Approved</option>
+                            <option value={2}>Rejected</option>
+                          </select>
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-3">
-                        {/* View Button */}
                         <button
                           onClick={() => navigate(`/driver_view/${user.id}`)}
                           className="text-blue-600 hover:text-blue-800"
@@ -420,16 +436,6 @@ function DriverList() {
                           <Eye size={18} />
                         </button>
 
-                        {/* Edit Button */}
-                        {/* <button
-                          onClick={() => navigate(`/users_edit/${user.id}`)}
-                          className="text-green-600 hover:text-green-800"
-                          title="Edit"
-                        >
-                          <Pencil size={18} />
-                        </button> */}
-
-                        {/* Delete Button */}
                         <button
                           onClick={() =>
                             handleDeleteUser(user.id, user.fullName)
@@ -467,14 +473,12 @@ function DriverList() {
                 <ChevronLeft size={16} />
               </button>
 
-              {/* Page numbers */}
               {totalPages > 0 &&
                 [...Array(Math.min(totalPages, 10)).keys()].map((number) => {
                   let pageNumber;
                   if (totalPages <= 10) {
                     pageNumber = number + 1;
                   } else {
-                    // Show pages around current page for large datasets
                     const startPage = Math.max(1, currentPage - 5);
                     pageNumber = startPage + number;
                     if (pageNumber > totalPages) return null;
