@@ -200,13 +200,13 @@ module.exports = {
     }
   },
 
-  forgetPasswordLinkHTML: async (req, user, resetUrl, subject) => {
+  forgetPasswordLinkHTML: async (req, user, subject) => {
     try {
       let mailOptions = {
         from: process.env.MAIL_USERNAME,
         to: user.email,
         subject: subject,
-        html: await emailTamplate.forgetPasswordLinkHTML(req, resetUrl),
+        html: await emailTamplate.otpSend(req),
       };
       return mailOptions;
     } catch (error) {

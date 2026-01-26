@@ -94,23 +94,16 @@ module.exports = {
 
       let newUser = await Models.userModel.create(objToSave);
 
-      /* =======================
-         TWILIO SEND OTP (COMMENTED)
-      ======================== */
-
-      // if (payload.phoneNumber && payload.countryCode) {
-      //   const phone = payload.countryCode + payload.phoneNumber;
-      //   try {
-      //     await otpManager.sendOTP(phone);
-      //     console.log("OTP sent via Twilio to", phone);
-      //   } catch (err) {
-      //     console.error("Twilio OTP send failed:", err);
-      //   }
-      // }
-
-      /* =======================
-         JWT TOKEN
-      ======================== */
+      let subject = "OTP";
+      let emailLink = "otp";
+      const transporter = await commonHelper.nodeMailer();
+      const emailTamplate = await commonHelper.forgetPasswordLinkHTML(
+        req,
+        user,
+        subject,
+        emailLink
+      );
+      // await transporter.sendMail(emailTamplate);
       const token = jwt.sign(
         {
           id: newUser.id,
@@ -315,59 +308,172 @@ module.exports = {
     }
   },
 
-  forgetPassword: async (req, res) => {
+  forgotPassword: async (req, res) => {
     try {
-      let schema = Joi.object().keys({
+      const schema = Joi.object().keys({
         email: Joi.string().email().required(),
       });
       let payload = await helper.validationJoi(req.body, schema);
       const { email } = payload;
       const user = await Models.userModel.findOne({
         where: { email: email },
-        raw: true,
       });
       if (!user) {
-        return commonHelper.failed(res, Response.failed_msg.emailNotReg);
+        return commonHelper.failed(res, Response.failed_msg.noAccWEmail);
       }
-      // Generate OTP
-      // const otp = Math.floor(100000 + Math.random() * 900000).toString();
-      const otp = "1111";
-      await Models.userModel.update({ otp: otp }, { where: { id: user.id } });
-      // Here, you would typically send the OTP to the user's email.
-      return commonHelper.success(res, Response.success_msg.otpSend);
+      const resetToken = await commonHelper.randomStringGenerate(req, res);
+      if (user && user.customerId == null) {
+        const customer = await stripe.customers.create({
+          description: "Edify",
+          email: req.body.email,
+        });
+        var customerId = customer.id;
+      }
+      await Models.userModel.update(
+        {
+          resetToken: resetToken,
+          resetTokenExpires: new Date(Date.now() + 3600000), // 1 hour
+          customerId: user && user.customerId ? user.customerId : customerId,
+        },
+        {
+          where: {
+            email: email,
+          },
+        }
+      );
+      const resetUrl = `${req.protocol}://${await commonHelper.getHost(
+        req,
+        res
+      )}/users/resetPassword?token=${resetToken}`; // Add your URL
+      let subject = "Reset Password";
+      let emailLink = "forgotPassword";
+      const transporter = await commonHelper.nodeMailer();
+      const emailTamplate = await commonHelper.forgetPasswordLinkHTML(
+        req,
+        user,
+        resetUrl,
+        subject,
+        emailLink
+      );
+      await transporter.sendMail(emailTamplate);
+      return commonHelper.success(res, Response.success_msg.passwordLink);
     } catch (error) {
-      console.error("Error during login:", err);
-      return commonHelper.error(res, Response.error_msg.intSerErr, err.message);
+      console.error("Forgot password error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.forgPwdErr,
+        error.message
+      );
     }
   },
-
-  forgetPasswordUpdate: async (req, res) => {
+  resendForgotPasswordLink: async (req, res) => {
     try {
       const schema = Joi.object().keys({
-        newPassword: Joi.string().required(),
         email: Joi.string().email().required(),
       });
       let payload = await helper.validationJoi(req.body, schema);
+      const { email } = payload;
+      const user = await Models.userModel.findOne({
+        where: { email: email },
+      });
+      if (!user) {
+        return commonHelper.failed(res, Response.failed_msg.noAccWEmail);
+      }
+      const resetToken = await commonHelper.randomStringGenerate(req, res);
+      await Models.userModel.update(
+        {
+          resetToken: resetToken,
+          resetTokenExpires: new Date(Date.now() + 3600000), // 1 hour
+        },
+        {
+          where: {
+            email: email,
+          },
+        }
+      );
+      const resetUrl = `${req.protocol}://${await commonHelper.getHost(
+        req,
+        res
+      )}/users/resetPassword?token=${resetToken}`; // Add your URL
+      let subject = "Reset Password";
+      const transporter = await commonHelper.nodeMailer();
+      const emailTamplate = await commonHelper.forgetPasswordLinkHTML(
+        req,
+        user,
+        resetUrl,
+        subject
+      );
+      await transporter.sendMail(emailTamplate);
+      return commonHelper.success(res, Response.success_msg.passwordLink);
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.forgPwdErr,
+        error.message
+      );
+    }
+  },
+  resetPassword: async (req, res) => {
+    try {
+      let data = req.user;
+      res.render("changePassword", { data: data });
+    } catch (error) {
+      console.error("Reset password error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.resetPwdErr,
+        error.message
+      );
+    }
+  },
+  forgotChangePassword: async (req, res) => {
+    try {
+      const schema = Joi.object().keys({
+        id: Joi.string().required(),
+        newPassword: Joi.string().required(),
+        confirmPassword: Joi.string().required(),
+      });
 
-      const { newPassword } = payload;
+      let payload = await helper.validationJoi(req.body, schema);
+      //Destructing the data
+      const { id, newPassword, confirmPassword } = payload;
+
+      if (newPassword !== confirmPassword) {
+        return commonHelper.failed(res, Response.failed_msg.pwdNoMatch);
+      }
+
+      const user = await Models.userModel.findOne({
+        where: { id: id },
+        raw: true,
+      });
+      if (!user) {
+        return commonHelper.failed(res, Response.failed_msg.userNotFound);
+      }
 
       const hashedNewPassword = await commonHelper.bcryptData(
         newPassword,
-        process.env.SALT,
+        process.env.SALT
       );
 
       await Models.userModel.update(
-        { password: hashedNewPassword },
-        { where: { email: req.body.email } },
+        {
+          password: hashedNewPassword,
+          resetToken: null,
+          resetTokenExpires: null,
+        },
+        { where: { id: id } }
       );
 
-      return commonHelper.success(res, Response.success_msg.passwordUpdate);
+      return res.render("successPassword", {
+        message: Response.success_msg.passwordChange,
+      });
     } catch (error) {
-      console.log("error", error);
+      console.error("Error while changing the password", error);
       return commonHelper.error(
         res,
-        Response.error_msg.intSerErr,
-        error.message,
+        Response.error_msg.chngPwdErr,
+        error.message
       );
     }
   },
@@ -566,21 +672,19 @@ module.exports = {
   otpVerify: async (req, res) => {
     try {
       const schema = Joi.object({
-        countryCode: Joi.string().required(),
-        phoneNumber: Joi.string().required(),
+        email: Joi.string().required(),
         otp: Joi.string().required(),
       });
 
       const payload = await helper.validationJoi(req.body, schema);
-      const { countryCode, phoneNumber, otp } = payload;
+      const { email, otp } = payload;
 
       // static OTP for now
       const STATIC_OTP = "1111";
 
       const user = await Models.userModel.findOne({
         where: {
-          countryCode,
-          phoneNumber,
+           email
         },
         raw: true,
       });
@@ -640,53 +744,40 @@ module.exports = {
          VALIDATION (PHONE ONLY)
       ======================== */
       const schema = Joi.object({
-        countryCode: Joi.string().required(),
-        phoneNumber: Joi.string().required()
+        email: Joi.string().required(),
       });
 
       const payload = await helper.validationJoi(req.body, schema);
-      const { countryCode, phoneNumber } = payload;
+      const { email } = payload;
 
       /* =======================
          USER LOOKUP
       ======================== */
       const user = await Models.userModel.findOne({
         where: {
-          countryCode,
-          phoneNumber,
+          email,
         },
       });
 
       if (!user) {
         return commonHelper.failed(res, Response.failed_msg.userNotFound);
       }
-
-      /* =======================
-         UPDATE OTP
-      ======================== */
       await Models.userModel.update(
         {
           otpVerify: 0,
         },
         { where: { id: user.id } },
       );
-
-      /* =======================
-         TWILIO RESEND (COMMENTED)
-      ======================== */
-
-      // const phone = countryCode + phoneNumber;
-      // try {
-      //   await otpManager.sendOTP(phone);
-      //   console.log("OTP resent via Twilio to", phone);
-      // } catch (err) {
-      //   console.error("Twilio OTP resend failed:", err);
-      //   return commonHelper.failed(
-      //     res,
-      //     "Failed to resend OTP. Please try again."
-      //   );
-      // }
-
+        let subject = "OTP";
+      let emailLink = "otp";
+      const transporter = await commonHelper.nodeMailer();
+      const emailTamplate = await commonHelper.forgetPasswordLinkHTML(
+        req,
+        user,
+        subject,
+        emailLink
+      );
+      // await transporter.sendMail(emailTamplate);
       return commonHelper.success(res, Response.success_msg.otpResend, {
         countryCode,
         phoneNumber,

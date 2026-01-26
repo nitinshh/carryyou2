@@ -50,8 +50,10 @@ module.exports = function (io) {
   router.post('/login', controller.userController.login);
   router.post("/licenceDetailAdd",authentication,controller.userController.licenceDetailAdd)
   router.post('/logout', authentication, controller.userController.logOut);
-  router.post("/forgetPassword", controller.userController.forgetPassword)
-  router.post("/forgetPasswordUpdate", controller.userController.forgetPasswordUpdate)
+  router.post('/forgotPassword', controller.userController.forgotPassword);
+  router.post('/resendForgotPasswordLink', controller.userController.resendForgotPasswordLink);
+  router.get('/resetPassword', forgotPasswordVerify, controller.userController.resetPassword);
+  router.post('/forgotChangePassword', controller.userController.forgotChangePassword);
   router.post('/changePassword', authentication, controller.userController.changePassword);
   router.post('/otpVerify', controller.userController.otpVerify);
   router.post('/resendOtp', controller.userController.resendOtp);
