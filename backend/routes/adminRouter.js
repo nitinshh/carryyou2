@@ -12,6 +12,7 @@ module.exports=function(){
      router.get("/dashboard",controller.frontendController.dashboard)
      router.get("/allUser",controller.frontendController.allUser)
      router.get("/allDriver",controller.frontendController.allDriver)
+     router.put("/approveRejectDriver",controller.frontendController.approveRejectDriver)
      router.get("/getDetail/:id",controller.frontendController.getDetail)
      router.put("/userStatusChange",controller.frontendController.userStatusChange) 
 

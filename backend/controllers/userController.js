@@ -155,9 +155,9 @@ module.exports = {
       if (!user) {
         return commonHelper.failed(res, Response.failed_msg.invalidCrd);
       }
-      // if (user && user.role == 2 && user.adminApprovalStatus == 0) {
-      //   return commonHelper.failed(res, Response.failed_msg.accNotAppoved);
-      // }
+      if (user && user.role == 2 && user.adminApprovalStatus == 0) {
+        return commonHelper.failed(res, Response.failed_msg.accNotAppoved);
+      }
       if (user && user.role == 2 && user.adminApprovalStatus == 2) {
         return commonHelper.failed(res, Response.failed_msg.accReject);
       }

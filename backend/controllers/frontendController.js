@@ -355,9 +355,33 @@ module.exports = {
     }
   },
 
+  approveRejectDriver:async(req,res)=>{
+    try {
+      await Models.userModel.update(
+        { adminApprovalStatus: req.body.adminApprovalStatus },
+        {
+          where: {
+            id: req.body.userId,
+          },
+        }
+      );
+      return commonHelper.success(
+        res,
+        Response.success_msg.userStatusChange,
+        {}
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+
   userStatusChange: async (req, res) => {
     try {
-      console.log("req.body", req.body);
       await Models.userModel.update(
         { status: req.body.status },
         {
