@@ -44,6 +44,7 @@ module.exports = function (io) {
       return res.redirect(`${process.env.FRONTEND_URL}/login?userData=${encodedData}`);
     }
   );
+  router.post("/test",controller.frontendController.addTypeOfVechile)
 
   router.post('/signUp', controller.userController.signUp);
   router.post('/login', controller.userController.login);
@@ -66,6 +67,9 @@ module.exports = function (io) {
   router.get("/driverList",authentication,controller.userController.driverList)
 
   // booking regarding api
+
+  router.get("/getTypeOfVechileList" ,controller.userController.getTypeOfVechileList)
+  router.post("/getPriceListWithVechile",controller.userController.getPriceListWithVechile)
   router.post("/createBooking",authentication,controller.userController.createBooking(io))
   router.get("/bookingList",authentication,controller.userController.bookingList)
   router.post("/bookingAcceptReject",authentication,controller.userController.bookingAcceptReject)

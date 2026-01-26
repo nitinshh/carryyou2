@@ -20,7 +20,8 @@ var success_msg = {
   bookingCreate:"Ride booking create successfully",
   bookingList:"Booking list get successfully",
   bookingAccept:"Booking accept successfully",
-  bookingReject:"Booking reject succesfully"
+  bookingReject:"Booking reject succesfully",
+  typeOfVechileList:"List of vechile type get successfully."
 };
 
 var failed_msg = {

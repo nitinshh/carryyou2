@@ -505,77 +505,31 @@ module.exports = {
     }
   },
 
-  beginnerUsersList: async (req, res) => {
+  addTypeOfVechile: async (req, res) => {
     try {
-      let limit = Number(req.query.limit) || 10;
-      let offset =
-        Number(req.query.skip) > 0
-          ? Number(req.query.skip) * limit
-          : 0;
-
-      let where = {
-        level: 0,
-        isAddedByAdmin: 1,
-        role: 1,
-      };
-
-      if (req.query.search) {
-        const search = `%${req.query.search}%`;
-        where[Op.or] = [
-          { fullName: { [Op.like]: search } },
-          { email: { [Op.like]: search } },
-          { phoneNumber: { [Op.like]: search } },
-        ];
-      }
-
-
-      const response = await Models.userModel.findAndCountAll({
-        where,
-        limit,
-        offset,
-        order: [["createdAt", "DESC"]],
-      });
-
-      return commonHelper.success(
-        res,
-        Response.success_msg.userList,
-        {
-          data: response.rows,
-          totalCount: response.count,
-        }
-      );
-    } catch (error) {
-      console.error("Beginner Users List Error:", error);
-      return commonHelper.error(
-        res,
-        Response.error_msg.intSerErr,
-        error.message
-      );
-    }
-  },
-
-  viewUser: async (req, res) => {
-    try {
-      const user = await Models.userModel.findOne({
-        where: { id: req.params.id },
-        attributes: { exclude: ["password"] },
-      });
-
-      if (!user) {
+      if (!req.files || !req.files.image) {
         return commonHelper.error(
           res,
-          Response.error_msg.notFound,
-          "User not found"
+          Response.error_msg.missingParams,
+          "Banner image is required."
         );
       }
 
-      return commonHelper.success(
-        res,
-        Response.success_msg.userDetail,
-        user
-      );
+      const image = await commonHelper.fileUpload(req.files.image, "images");
+       let objToSave={
+        image:image,
+        name:req.body.name,
+        price:req.body.price
+       }
+      const newBanner = await Models.typeOfVechicleModel.create(objToSave);
+
+      return res.status(200).json({
+        success: true,
+        message: "Type of vechile added successfully",
+        data: newBanner,
+      });
     } catch (error) {
-      console.error("View User Error:", error);
+      console.log("Error:", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
@@ -584,295 +538,36 @@ module.exports = {
     }
   },
 
-  beginnerUsersPositions: async (req, res) => {
+  getTypeOfVechileList:async(req,res)=>{
     try {
-      const users = await Models.userModel.findAll({
-        where: { level: 0, isAddedByAdmin: 1 },
-        attributes: ["position", "donerReceiver"],
-      });
+      const { page = 1, limit = 10, search = "" } = req.query;
+      const offset = (page - 1) * limit;
 
-      const usedPositions = users
-        .map((u) => u.position)
-        .filter((p) => p !== null);
+      const whereCondition = search
+        ? {
+          // Assuming banners have an optional 'title' field
+          title: {
+            [Sequelize.Op.like]: `%${search}%`,
+          },
+        }
+        : {};
 
-      const receiverExists = users.some((u) => u.donerReceiver === 1);
-
-      const donorCount = users.filter((u) => u.donerReceiver === 0).length;
-
-      return commonHelper.success(res, "Beginner meta", {
-        usedPositions,
-        receiverExists,
-        donorCount,
-      });
-    } catch (error) {
-      return commonHelper.error(
-        res,
-        Response.error_msg.intSerErr,
-        error.message
-      );
-    }
-  },
-
-  beginnerUserCreate: async (req, res) => {
-    try {
-      const {
-        fullName,
-        email,
-        countryCode,
-        phoneNumber,
-        btcWalletAddress,
-      } = req.body;
-
-      const donerReceiver = Number(req.body.donerReceiver);
-      const position = Number(req.body.position);
-
-      if (!fullName || !email)
-        return commonHelper.error(res, "Name & Email required");
-
-      if (isNaN(position) || position < 0 || position > 10)
-        return commonHelper.error(res, "Invalid position");
-
-      if (![0, 1].includes(donerReceiver))
-        return commonHelper.error(res, "Invalid donerReceiver");
-
-      /* POSITION UNIQUE */
-      const positionExists = await Models.userModel.findOne({
-        where: { level: 0, position, role: 1 },
-      });
-      if (positionExists)
-        return commonHelper.error(res, "Position already used");
-
-      /* ONLY ONE RECEIVER */
-      if (donerReceiver === 1) {
-        const receiverCount = await Models.userModel.count({
-          where: { level: 0, donerReceiver: 1, role: 1 },
-        });
-        if (receiverCount > 0)
-          return commonHelper.error(res, "Receiver already exists");
-      }
-
-      /* MAX 10 DONORS */
-      if (donerReceiver === 0) {
-        const donorCount = await Models.userModel.count({
-          where: { level: 0, donerReceiver: 0, role: 1 },
-        });
-        if (donorCount >= 10)
-          return commonHelper.error(res, "Donor limit reached");
-      }
-
-      let profilePicture = null;
-      if (req.files?.image) {
-        profilePicture = await commonHelper.fileUpload(
-          req.files.image,
-          "images"
-        );
-      }
-
-       const hashedPassword = await commonHelper.bcryptData(
-              "123456",
-              process.env.SALT
-            );
-
-      const user = await Models.userModel.create({
-        fullName,
-        email,
-        countryCode,
-        phoneNumber,
-        btcWalletAddress,
-        donerReceiver,
-        position,
-        level: 0,
-        role: 1,
-        profilePicture,
-        isAddedByAdmin: 1,
-        status: 1,
-        password:hashedPassword
-      });
-
-      /** 🔥 INVITE CODE */
-      const inviteCode = await generateUniqueInviteCode();
-
-      await Models.invitedCodeModel.create({
-        code: inviteCode,
-        userId: user.id,
-        isUsed: 0,
-      });
-
-
-      return commonHelper.success(res, "Beginner user created", user);
-    } catch (error) {
-      console.log("Beginner user create error:", error);
-      return commonHelper.error(res, "Server error", error.message);
-    }
-  },
-
-  beginnerUserDetail: async (req, res) => {
-    try {
-      const user = await Models.userModel.findOne({
-        where: { id: req.params.id, level: 0 },
-        attributes: { exclude: ["password"] },
-      });
-
-      if (!user)
-        return commonHelper.error(res, "Not Found", "User not found");
-
-      return commonHelper.success(res, "User detail", user);
-    } catch (error) {
-      return commonHelper.error(
-        res,
-        Response.error_msg.intSerErr,
-        error.message
-      );
-    }
-  },
-
-  beginnerUserUpdate: async (req, res) => {
-    try {
-      const {
-        id,
-        fullName,
-        countryCode,
-        phoneNumber,
-        btcWalletAddress,
-      } = req.body;
-
-      const donerReceiver = Number(req.body.donerReceiver);
-      const position = Number(req.body.position);
-
-      const user = await Models.userModel.findOne({
-        where: { id, level: 0 },
-      });
-
-      if (!user)
-        return commonHelper.error(res, "Not Found", "User not found");
-
-      /* ---------- BASIC VALIDATION ---------- */
-      if (!fullName)
-        return commonHelper.error(res, "Validation", "Full name required");
-
-      if (isNaN(position) || position < 0 || position > 10)
-        return commonHelper.error(res, "Validation", "Invalid position");
-
-      if (![0, 1].includes(donerReceiver))
-        return commonHelper.error(res, "Validation", "Invalid donerReceiver");
-
-      /* ---------- POSITION UNIQUE ---------- */
-      const positionUsed = await Models.userModel.findOne({
-        where: {
-          level: 0,
-          position,
-          id: { [Op.ne]: id },
-        },
-      });
-
-      if (positionUsed)
-        return commonHelper.error(res, "Validation", "Position already used");
-
-      /* ---------- ROLE CHANGE RULES ---------- */
-
-      // 🔁 Changing TO Receiver
-      if (donerReceiver === 1 && user.donerReceiver !== 1) {
-        const receiverExists = await Models.userModel.count({
-          where: { level: 0, donerReceiver: 1 },
-        });
-
-        if (receiverExists > 0)
-          return commonHelper.error(res, "Validation", "Receiver already exists");
-      }
-
-      // 🔁 Changing TO Donor
-      if (donerReceiver === 0 && user.donerReceiver !== 0) {
-        const donorCount = await Models.userModel.count({
-          where: { level: 0, donerReceiver: 0 },
-        });
-
-        if (donorCount >= 10)
-          return commonHelper.error(res, "Validation", "Donor limit reached");
-      }
-
-      /* ---------- IMAGE ---------- */
-      let profilePicture = user.profilePicture;
-      if (req.files?.image) {
-        profilePicture = await commonHelper.fileUpload(
-          req.files.image,
-          "images"
-        );
-      }
-
-      /* ---------- UPDATE ---------- */
-      await Models.userModel.update(
-        {
-          fullName,
-          countryCode,
-          phoneNumber,
-          btcWalletAddress,
-          donerReceiver,
-          position,
-          profilePicture,
-        },
-        { where: { id } }
-      );
-
-      const updatedUser = await Models.userModel.findOne({
-        where: { id },
-        attributes: { exclude: ["password"] },
-      });
-
-      return commonHelper.success(
-        res,
-        Response.success_msg.updateSuccess,
-        updatedUser
-      );
-    } catch (error) {
-      console.error("Beginner User Update Error:", error);
-      return commonHelper.error(
-        res,
-        Response.error_msg.intSerErr,
-        error.message
-      );
-    }
-  },
-
-  advanceUsersList: async (req, res) => {
-    try {
-      let limit = Number(req.query.limit) || 10;
-      let offset =
-        Number(req.query.skip) > 0
-          ? Number(req.query.skip) * limit
-          : 0;
-
-      let where = {
-        level: 1,
-        isAddedByAdmin: 1,
-        role: 1,
-      };
-
-      if (req.query.search) {
-        const search = `%${req.query.search}%`;
-        where[Op.or] = [
-          { fullName: { [Op.like]: search } },
-          { email: { [Op.like]: search } },
-          { phoneNumber: { [Op.like]: search } },
-        ];
-      }
-
-      const response = await Models.userModel.findAndCountAll({
-        where,
-        limit,
-        offset,
+      const { count, rows } = await Models.typeOfVechicleModel.findAndCountAll({
+        where: whereCondition,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
         order: [["createdAt", "DESC"]],
       });
 
-      return commonHelper.success(
-        res,
-        Response.success_msg.userList,
-        {
-          data: response.rows,
-          totalCount: response.count,
-        }
-      );
+      return res.status(200).json({
+        success: true,
+        data: rows,
+        totalCount: count,
+        totalPages: Math.ceil(count / limit),
+        currentPage: parseInt(page),
+      });
     } catch (error) {
-      console.error("Advance Users List Error:", error);
+      console.log("Error:", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
@@ -881,169 +576,61 @@ module.exports = {
     }
   },
 
-  advanceUsersPositions: async (req, res) => {
+  updateTypeOfVechile:async (req, res) => {
     try {
-      const users = await Models.userModel.findAll({
-        where: { level: 1, isAddedByAdmin: 1 },
-        attributes: ["position", "donerReceiver"],
-      });
+      let typeOfVechile=await Models.typeOfVechicleModel.findOne({
+        where:{
+          id:req.body.id
+        },raw:true
+      })
+      let image;
+      if(req.files&&req.files,image){
+        image = await commonHelper.fileUpload(req.files.image, "images");
+      }
+       let objToSave={
+        image:image?image:typeOfVechile.image,
+        name:req.body.name,
+        price:req.body.price
+       }
+      const newBanner = await Models.typeOfVechicleModel.update(objToSave,{where:{id:req.body.id}});
 
-      return commonHelper.success(res, "Advance meta", {
-        usedPositions: users.map(u => u.position).filter(Boolean),
-        receiverExists: users.some(u => u.donerReceiver === 1),
+      return res.status(200).json({
+        success: true,
+        message: "Type of vechile update successfully",
+        data: newBanner,
       });
     } catch (error) {
-      return commonHelper.error(res, "Server error", error.message);
-    }
-  },
-
-  advanceUserCreate: async (req, res) => {
-    try {
-      const {
-        fullName,
-        email,
-        countryCode,
-        phoneNumber,
-        btcWalletAddress,
-      } = req.body;
-
-      const donerReceiver = Number(req.body.donerReceiver);
-      const position = Number(req.body.position);
-
-      if (!fullName || !email)
-        return commonHelper.error(res, "Name & Email required");
-
-      if (isNaN(position) || position < 0 || position > 10)
-        return commonHelper.error(res, "Invalid position");
-
-      if (![0, 1].includes(donerReceiver))
-        return commonHelper.error(res, "Invalid donerReceiver");
-
-      const exists = await Models.userModel.findOne({
-        where: { level: 1, position, role: 1 },
-      });
-      if (exists)
-        return commonHelper.error(res, "Position already used");
-
-      if (donerReceiver === 1) {
-        const count = await Models.userModel.count({
-          where: { level: 1, donerReceiver: 1, role: 1 },
-        });
-        if (count > 0)
-          return commonHelper.error(res, "Receiver already exists");
-      }
-
-      let profilePicture = null;
-      if (req.files?.image) {
-        profilePicture = await commonHelper.fileUpload(
-          req.files.image,
-          "images"
-        );
-      }
-
-       const hashedPassword = await commonHelper.bcryptData(
-              "123456",
-              process.env.SALT
-            );
-
-      /** ✅ CREATE USER */
-      const user = await Models.userModel.create({
-        fullName,
-        email,
-        countryCode,
-        phoneNumber,
-        btcWalletAddress,
-        donerReceiver,
-        position,
-        level: 1,
-        role: 1,
-        profilePicture,
-        isAddedByAdmin: 1,
-        status: 1,
-        password:hashedPassword
-      });
-
-      /** 🔥 GENERATE & SAVE INVITE CODE */
-      const inviteCode = await generateUniqueInviteCode();
-
-      await Models.invitedCodeModel.create({
-        code: inviteCode,
-        userId: user.id,
-        isUsed: 0,
-      });
-
-      return commonHelper.success(res, "Advance user created", user);
-    } catch (error) {
-      console.error("Advance user create error:", error);
-      return commonHelper.error(res, "Server error", error.message);
-    }
-  },
-
-
-  advanceUserUpdate: async (req, res) => {
-    try {
-      const { id, fullName, countryCode, phoneNumber, btcWalletAddress } =
-        req.body;
-
-      const donerReceiver = Number(req.body.donerReceiver);
-      const position = Number(req.body.position);
-
-      const user = await Models.userModel.findOne({
-        where: { id, level: 1 },
-      });
-
-      if (!user)
-        return commonHelper.error(res, "Not Found", "User not found");
-
-      if (!fullName)
-        return commonHelper.error(res, "Full name required");
-
-      const used = await Models.userModel.findOne({
-        where: { level: 1, position, id: { [Op.ne]: id } },
-      });
-      if (used)
-        return commonHelper.error(res, "Position already used");
-
-      let profilePicture = user.profilePicture;
-      if (req.files?.image) {
-        profilePicture = await commonHelper.fileUpload(req.files.image, "images");
-      }
-
-      await Models.userModel.update(
-        {
-          fullName,
-          countryCode,
-          phoneNumber,
-          btcWalletAddress,
-          donerReceiver,
-          position,
-          profilePicture,
-        },
-        { where: { id } }
+      console.log("Error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
       );
-
-      return commonHelper.success(res, "Advance user updated");
-    } catch (error) {
-      return commonHelper.error(res, "Server error", error.message);
     }
   },
-
-  advanceUserDetail: async (req, res) => {
+  deleteTypeOfVechile: async (req, res) => {
     try {
-      const user = await Models.userModel.findOne({
-        where: { id: req.params.id, level: 1 },
-        attributes: { exclude: ["password"] },
+      const { id } = req.params;
+
+      const typeOfVechile = await Models.typeOfVechicleModel.findOne({
+        where: { id },
       });
 
-      if (!user)
-        return commonHelper.error(res, "Not Found", "User not found");
+      await typeOfVechile.destroy();
 
-      return commonHelper.success(res, "User detail", user);
+      return res.status(200).json({
+        success: true,
+        message: "Type of vechile deleted successfully",
+      });
     } catch (error) {
-      return commonHelper.error(res, "Server error", error.message);
+      console.log("Error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
     }
   },
-
 
 
 

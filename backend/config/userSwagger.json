@@ -15,6 +15,48 @@
     }
   },
   "paths": {
+    "/users/test": {
+      "post": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-test-post",
+        "tags": ["Application User"],
+        "description": "",
+        "parameters": [
+          {
+            "name": "name",
+            "in": "formData",
+            "description": "Enter the name",
+            "required": false,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "image",
+            "in": "formData",
+            "description": "Profile picture to upload",
+            "required": false,
+            "type": "file",
+            "format": "binary",
+            "maxLength": 5242880,
+            "allowedMimeTypes": ["image/jpeg", "image/png"]
+          },
+          {
+            "name": "price",
+            "in": "formData",
+            "description": "Enter price",
+            "required": false,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
     "/users/signUp": {
       "post": {
         "x-swagger-router-controller": "middleware-name1",
@@ -201,7 +243,7 @@
             "value": "2030-01-01"
           },
           {
-            "name": "typeOfVehicle",
+            "name": "typeOfVehicleId",
             "in": "formData",
             "description": "Type of vehicle",
             "required": false,
@@ -517,7 +559,7 @@
             "allowedMimeTypes": ["image/jpeg", "image/png"]
           },
           {
-            "name": "typeOfVehicle",
+            "name": "typeOfVehicleId",
             "in": "formData",
             "description": "Enter type of vehicle",
             "required": false,
@@ -807,6 +849,77 @@
         ]
       }
     },
+    "/users/getTypeOfVechileList": {
+      "get": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-getTypeOfVechileList-get",
+        "tags": ["Application User"],
+        "description": "Update user current location and coordinates",
+        "consumes": ["application/x-www-form-urlencoded"],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "getTypeOfVechileList list get successfully"
+          },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/getPriceListWithVechile": {
+      "post": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-getPriceListWithVechile-post",
+        "tags": ["Application User"],
+        "description": "Update user current location and coordinates",
+        "consumes": ["application/x-www-form-urlencoded"],
+        "parameters": [
+          {
+            "name": "pickUpLatitude",
+            "in": "formData",
+            "description": "pickUpLatitude of user location",
+            "required": true,
+            "type": "number",
+            "format": "float",
+            "value": 30.6746
+          },
+          {
+            "name": "pickUpLongitude",
+            "in": "formData",
+            "description": "pickUpLongitude of user location",
+            "required": true,
+            "type": "number",
+            "format": "float",
+            "value": 76.7352
+          },
+          {
+            "name": "dropLatitude",
+            "in": "formData",
+            "description": "dropLatitude of user dropLatitude",
+            "required": true,
+            "type": "number",
+            "format": "float",
+            "value": 30.44
+          },
+          {
+            "name": "dropLongitude",
+            "in": "formData",
+            "description": "dropLongitude of user location",
+            "required": true,
+            "type": "number",
+            "format": "float",
+            "value": 76.47
+          }
+        ],
+        "responses": {
+          "200": { "description": "List create updated successfully" },
+          "400": { "description": "Validation error" },
+          "401": { "description": "Unauthorized" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
     "/users/createBooking": {
       "post": {
         "x-swagger-router-controller": "middleware-name1",
@@ -886,12 +999,38 @@
             "value": 77.209
           },
           {
-            "name": "rideType",
+            "name": "typeOfVehicleId",
             "in": "formData",
-            "description": "rideType of user location",
+            "description": "typeOfVehicleId of user location",
             "required": true,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "scheduleType",
+            "in": "formData",
+            "description": "scheduleType of user location",
+            "required": true,
+            "enum": [1, 2],
             "type": "number",
-            "value": 1
+            "value": ""
+          },
+          {
+            "name": "bookingDate",
+            "in": "formData",
+            "description": "Booking date (YYYY-MM-DD)",
+            "required": false,
+            "type": "string",
+            "format": "date",
+            "example": "2026-01-30"
+          },
+          {
+            "name": "bookingTime",
+            "in": "formData",
+            "description": "Booking time (HH:mm:ss)",
+            "required": false,
+            "type": "string",
+            "example": "14:30:00"
           }
         ],
         "responses": {

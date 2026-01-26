@@ -1,4 +1,5 @@
 const Sequelize = require("sequelize");
+const PRICING = require("../config/pricing");
 const { Op, fn, col, literal } = require("sequelize");
 const Joi = require("joi");
 const jwt = require("jsonwebtoken");
@@ -260,7 +261,7 @@ module.exports = {
         dob: req.body.dob,
         nationality: req.body.nationality,
         expiryDate: req.body.expiryDate,
-        typeOfVehicle: req.body.typeOfVehicle,
+        typeOfVehicleId: req.body.typeOfVehicleId,
         vehicleRegistrationImage: vehicleRegistrationImage,
         registrationExpiryDate: req.body.registrationExpiryDate,
         insurancePolicyImage: insurancePolicyImage,
@@ -494,7 +495,7 @@ module.exports = {
       }
       let objToUpate = {
         pictureOfVehicle: pictureOfVehicle,
-        typeOfVehicle: req.body.typeOfVehicle,
+        typeOfVehicleId: req.body.typeOfVehicleId,
         vehicleRegistrationImage: vehicleRegistrationImage,
         registrationExpiryDate: req.body.registrationExpiryDate,
         insurancePolicyImage: insurancePolicyImage,
@@ -894,35 +895,166 @@ module.exports = {
     }
   },
 
+  getTypeOfVechileList: async (req, res) => {
+    try {
+      let response = await Models.typeOfVechicleModel.findAll();
+      return commonHelper.success(
+        res,
+        Response.success_msg.typeOfVechileList,
+        response,
+      );
+    } catch (error) {
+      console.log("Error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+  
+  getPriceListWithVechile: async (req, res) => {
+    try {
+      const { pickUpLatitude, pickUpLongitude, dropLatitude, dropLongitude } =
+        req.body;
+
+      if (
+        !pickUpLatitude ||
+        !pickUpLongitude ||
+        !dropLatitude ||
+        !dropLongitude
+      ) {
+        return commonHelper.failed(res, "Lat/Long required");
+      }
+
+      // 1️⃣ Distance
+      const distanceKm = await commonHelper.getDistanceInKm(
+        pickUpLatitude,
+        pickUpLongitude,
+        dropLatitude,
+        dropLongitude,
+      );
+
+      const distanceMiles = distanceKm * 0.621371;
+
+      // 2️⃣ Time (estimate)
+      const timeMinutes = (distanceKm / PRICING.avgSpeedKmph) * 60;
+
+      // 3️⃣ Get vehicle types
+      const vehicles = await Models.typeOfVechicleModel.findAll({
+        raw: true,
+      });
+
+      // 4️⃣ Calculate price per vehicle
+      const priceList = vehicles.map((vehicle) => {
+        let fare =
+          PRICING.baseFare +
+          PRICING.costPerMile * distanceMiles +
+          PRICING.costPerMinute * timeMinutes +
+          PRICING.serviceFee;
+
+        // Vehicle multiplier (optional)
+        if (vehicle.price > 0) {
+          fare = fare * vehicle.price;
+        }
+
+        // Minimum fare check
+        if (fare < PRICING.minimumFare) {
+          fare = PRICING.minimumFare;
+        }
+
+        return {
+          id: vehicle.id,
+          name: vehicle.name,
+          image: vehicle.image,
+          estimatedFare: Number(fare.toFixed(2)),
+          distanceKm: Number(distanceKm.toFixed(2)),
+          durationMinutes: Math.ceil(timeMinutes),
+        };
+      });
+
+      return commonHelper.success(
+        res,
+        Response.success_msg.priceList,
+        priceList,
+      );
+    } catch (error) {
+      console.log("getPriceList error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
   createBooking: (io) => async (req, res) => {
     try {
-      let objToSave = {
+      const {
+        pickUpLatitude,
+        pickUpLongitude,
+        driverId, // optional (if direct booking)
+      } = req.body;
+
+      // 1️⃣ Create booking
+      const booking = await Models.bookingModel.create({
         userId: req.user.id,
         pickUpLocation: req.body.pickUpLocation,
-        pickUpLatitude: req.body.pickUpLatitude,
-        pickUpLongitude: req.body.pickUpLongitude,
+        pickUpLatitude,
+        pickUpLongitude,
         destinationLocation: req.body.destinationLocation,
         destinationLatitude: req.body.destinationLatitude,
         destinationLongitude: req.body.destinationLongitude,
         amount: req.body.amount,
         distance: req.body.distance,
-        rideType: req.body.rideType,
-      };
-      let driverDetail = await Models.userModel.findOne({
+        typeOfVehicleId: req.body.typeOfVehicleId,
+        scheduleType:req.body.scheduleType, //1 for instant and 2 for schedule for future
+        bookingDate:req.body.bookingDate||null,
+        bookingTime:req.body.bookingDate||null
+      });
+
+      // 2️⃣ Find nearby drivers (10 KM)
+      const drivers = await Models.userModel.findAll({
+        attributes: [
+          "id",
+          "socketId",
+          "latitude",
+          "longitude",
+          [
+            Sequelize.literal(`
+            (6371 * acos(
+              cos(radians(${pickUpLatitude}))
+              * cos(radians(latitude))
+              * cos(radians(longitude) - radians(${pickUpLongitude}))
+              + sin(radians(${pickUpLatitude}))
+              * sin(radians(latitude))
+            ))
+          `),
+            "distance",
+          ],
+        ],
         where: {
-          id: req.body.driverId,
+          role: 2, // DRIVER ROLE
+          isOnline: 1,
+          socketId: { [Op.ne]: null },
         },
+        having: Sequelize.literal("distance <= 10"),
+        order: [[Sequelize.literal("distance"), "ASC"]],
         raw: true,
       });
-      let response = await Models.bookingModel.create(objToSave);
-      io.to(driverDetail.socketId).emit("createBooking", response);
+
+      // 3️⃣ Emit to all nearby drivers
+      drivers.forEach((driver) => {
+        io.to(driver.socketId).emit("createBooking", booking);
+      });
+
       return commonHelper.success(
         res,
         Response.success_msg.bookingCreate,
-        response,
+        booking,
       );
     } catch (error) {
-      console.log("error", error);
+      console.log("createBooking error:", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
@@ -934,8 +1066,8 @@ module.exports = {
   bookingList: async (req, res) => {
     try {
       let response;
-      if (req.user && req.user.role == 1) {
-        response = await Models.bookingList.findAll({
+      if (req.user.role == 1) {
+        response = await Models.bookingModel.findAll({
           where: {
             userId: req.user.id,
           },
@@ -945,24 +1077,60 @@ module.exports = {
               as: "driver",
             },
           ],
+          order: [["createdAt", "DESC"]],
         });
-      } else {
-        response = await Models.bookingList.findAll({
+      } else if (req.user.role == 2) {
+        // 1️⃣ Get driver location
+        const driver = await Models.userModel.findOne({
+          where: { id: req.user.id },
+          attributes: ["latitude", "longitude"],
+          raw: true,
+        });
+
+        if (!driver || !driver.latitude || !driver.longitude) {
+          return commonHelper.failed(res, "Driver location not available");
+        }
+
+        const { latitude, longitude } = driver;
+
+        // 2️⃣ Find nearby bookings (10 KM)
+        response = await Models.bookingModel.findAll({
+          attributes: {
+            include: [
+              [
+                Sequelize.literal(`
+                (6371 * acos(
+                  cos(radians(${latitude}))
+                  * cos(radians(pickUpLatitude))
+                  * cos(radians(pickUpLongitude) - radians(${longitude}))
+                  + sin(radians(${latitude}))
+                  * sin(radians(pickUpLatitude))
+                ))
+              `),
+                "distance",
+              ],
+            ],
+          },
           where: {
-            driverId: req.user.id,
-            // ❌ Exclude rejected bookings
+            status: 0, // ⏳ pending bookings only
+            driverId: null, // not accepted by any driver
+
+            // ❌ Exclude rejected by this driver
             id: {
               [Op.notIn]: literal(`(
-                SELECT bookingId
-                FROM bookingRejectBy
-                WHERE driverId = '${req.user.id}'
-              )`),
+              SELECT bookingId
+              FROM bookingRejectBy
+              WHERE driverId = '${req.user.id}'
+            )`),
             },
           },
+          having: Sequelize.literal("distance <= 10"),
+          order: [[Sequelize.literal("distance"), "ASC"]],
           include: [
             {
               model: Models.userModel,
               as: "user",
+              attributes: ["id", "firstName", "lastName", "phoneNumber"],
             },
           ],
         });
@@ -974,7 +1142,7 @@ module.exports = {
         response,
       );
     } catch (error) {
-      console.log("error", error);
+      console.log("bookingList error:", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
@@ -985,6 +1153,7 @@ module.exports = {
 
   bookingAcceptReject: (io) => async (req, res) => {
     try {
+      // 1 for accpet 2 for reject 3 for
       if (req.body.status == 1) {
         await Models.bookingModel.update(
           { status: 1 },
@@ -1009,7 +1178,7 @@ module.exports = {
           where: { id: response.userId },
           raw: true,
         });
-        io.to(userDetail.socketId).emit("bookingAcceptReject",response);
+        io.to(userDetail.socketId).emit("bookingAcceptReject", response);
         return commonHelper.success(
           res,
           Response.success_msg.bookingAccept,
@@ -1020,11 +1189,11 @@ module.exports = {
           { status: 1 },
           { where: { id: req.body.bookingId } },
         );
-        let objToSave={
-          driverId:req.user.id,
-          bookingId:req.body.bookingId
-        }
-        await Models.bookingRejectedByModel.create(objToSave)
+        let objToSave = {
+          driverId: req.user.id,
+          bookingId: req.body.bookingId,
+        };
+        await Models.bookingRejectedByModel.create(objToSave);
         let response = await Models.bookingModel.findOne({
           where: {
             id: req.body.bookingId,
@@ -1044,7 +1213,7 @@ module.exports = {
           where: { id: response.userId },
           raw: true,
         });
-        io.to(userDetail.socketId).emit("bookingAcceptReject",response);
+        io.to(userDetail.socketId).emit("bookingAcceptReject", response);
         return commonHelper.success(
           res,
           Response.success_msg.bookingReject,

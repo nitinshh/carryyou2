@@ -28,7 +28,7 @@ module.exports = {
 
   failed: async (res, msg, body = {}) => {
     try {
-      console.log("msg",msg)
+      console.log("msg", msg);
       return res.status(400).json({
         success: false,
         message: msg,
@@ -79,8 +79,8 @@ module.exports = {
 
       // Build folder path inside /public
       const folderPath = path.join(__dirname, "..", "public", folder);
-      console.log("folderPath",folderPath)
-      console.log("first",fs.existsSync(folderPath))
+      console.log("folderPath", folderPath);
+      console.log("first", fs.existsSync(folderPath));
       // ✅ Create folder if it doesn't exist
       if (!fs.existsSync(folderPath)) {
         fs.mkdirSync(folderPath, { recursive: true });
@@ -320,5 +320,19 @@ module.exports = {
         console.error("Error sending notification:", error);
         return true;
       });
+  },
+  getDistanceInKm: async (lat1, lon1, lat2, lon2) => {
+    const R = 6371;
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+
+    return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
   },
 };

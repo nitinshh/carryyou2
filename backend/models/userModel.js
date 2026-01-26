@@ -160,10 +160,16 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull: true,
       },
 
-      typeOfVehicle: {
-        type: DataTypes.INTEGER,
+      typeOfVehicleId: {
+       type: Sequelize.UUID,
         allowNull: true,
-        defaultValue: 0, // 0 for bike, 1 for car, 2 for van
+        defaultValue: null,
+        references: {
+          model: "typeOfVechile",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
       },
 
       vehicleRegistrationImage: {
