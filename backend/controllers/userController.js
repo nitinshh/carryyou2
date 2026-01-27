@@ -99,7 +99,7 @@ module.exports = {
       const transporter = await commonHelper.nodeMailer();
       const emailTamplate = await commonHelper.forgetPasswordLinkHTML(
         req,
-        user,
+        newUser,
         subject,
         emailLink,
       );
