@@ -744,18 +744,20 @@ module.exports = {
          VALIDATION (PHONE ONLY)
       ======================== */
       const schema = Joi.object({
-        email: Joi.string().required(),
+        countryCode: Joi.string().optional(),
+        phoneNumber: Joi.string().optional(),
       });
 
       const payload = await helper.validationJoi(req.body, schema);
-      const { email } = payload;
+      const { countryCode, phoneNumber } = payload;
 
       /* =======================
          USER LOOKUP
       ======================== */
       const user = await Models.userModel.findOne({
         where: {
-          email,
+          countryCode,
+          phoneNumber,
         },
       });
 
