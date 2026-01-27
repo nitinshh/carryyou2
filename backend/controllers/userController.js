@@ -1283,7 +1283,7 @@ module.exports = {
 
   bookingAcceptReject: (io) => async (req, res) => {
     try {
-      // 1 for accpet 2 for reject 3 for
+      // 1 for accpet 2 for reject 3 for cancel by user
       if (req.body.status == 1) {
         await Models.bookingModel.update(
           { status: 1 },
@@ -1349,7 +1349,37 @@ module.exports = {
           Response.success_msg.bookingReject,
           response,
         );
-      }
+      }else if (req.body.status == 3) {
+        await Models.bookingModel.update(
+          { status: 3 },
+          { where: { id: req.body.bookingId } },
+        );
+        let response = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.driverId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit("cancelBooking", response);
+        return commonHelper.success(
+          res,
+          Response.success_msg.bookingCancel,
+          response,
+        );
+      } 
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
@@ -1360,6 +1390,7 @@ module.exports = {
     }
   },
 
+  
   calculate_price: async (req, res) => {
     try {
       let {
