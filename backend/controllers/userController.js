@@ -1533,8 +1533,7 @@ module.exports = {
       const paymentIntent = await stripe.paymentIntents.retrieve(
         req.body.transactionId,
       );
-      let transactionDetail=await Models.transactionModel.findOne({where:{id:req.body.transactionId},raw:true})
-    
+      let transactionDetail=await Models.transactionModel.findOne({where:{transactionId:req.body.transactionId},raw:true})
       if( paymentIntent.status === "succeeded"){
           await Models.transactionModel.update(
         {
