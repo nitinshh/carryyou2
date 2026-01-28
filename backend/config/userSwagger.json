@@ -1294,6 +1294,44 @@
         }
       }
     },
+    "/users/bookingStatusChange": {
+      "post": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-bookingStatusChange-post",
+        "tags": ["Application User"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "status",
+            "in": "formData",
+            "description": "Enter the status",
+            "required": true,
+            "enum":[4,5,6,7,8,9],
+            "type": "number",
+            "value": ""
+          },
+           {
+            "name": "otp",
+            "in": "formData",
+            "description": "Enter the opt when status send 6",
+            "required": false,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "booking status change successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
     "/users/bookingDetail": {
       "post": {
         "x-swagger-router-controller": "middleware-name1",

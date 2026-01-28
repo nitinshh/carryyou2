@@ -1640,7 +1640,7 @@ module.exports = {
           Response.success_msg.bookingCompleteByUser,
           response,
         );
-      } else if (req.body.status == 8) {
+      } else if (req.body.status == 9) {
         await Models.bookingModel.update(
           { status: 9 },
           { where: { id: req.body.bookingId } },
