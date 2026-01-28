@@ -101,6 +101,21 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull:true,
         defaultValue:0
       },
+      otp:{
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        defaultValue:null
+      },
+      otpVerify:{
+        type:DataTypes.INTEGER,
+        allowNull:true,
+        defaultValue:0
+      },
+      reason:{
+        type:DataTypes.TEXT,
+        allowNull:true,
+        defaultValue:null
+      }
     },
     {
       timestamps: true,

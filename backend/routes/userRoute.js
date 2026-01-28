@@ -75,6 +75,10 @@ module.exports = function (io) {
   router.post("/createBooking",authentication,controller.userController.createBooking(io))
   router.get("/bookingList",authentication,controller.userController.bookingList)
   router.post("/bookingAcceptReject",authentication,controller.userController.bookingAcceptReject(io))
+  router.post("/bookingStatusChange",authentication,controller.userController.bookingStatusChange(io))
+  router.post("/ratingDriver",authentication,controller.userController.ratingDriver)
+  router.get("/bookingDetail",authentication,controller.userController.bookingDetail)
+  router.get("/bookingJobHistory",authentication,controller.userController.bookingJobHistory)
   router.get(
     "/stripeDetailReturn",
     controller.userController.stripeDetailReturn

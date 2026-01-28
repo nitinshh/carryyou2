@@ -1265,6 +1265,85 @@
         }
       }
     },
+    "/users/ratingDriver": {
+      "post": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-ratingDriver-post",
+        "tags": ["Application User"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "rating",
+            "in": "formData",
+            "description": "Enter the rating",
+            "required": false,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Rating successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/bookingDetail": {
+      "post": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-bookingDetail-post",
+        "tags": ["Application User"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "bookingId",
+            "in": "query",
+            "description": "Enter the bookingId",
+            "required": false,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Rating successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/bookingJobHistory": {
+      "get": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-bookingJobHistory-post",
+        "tags": ["Application User"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "200": { "description": "Rating successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
     "/users/stripeDetailReturn": {
       "get": {
         "x-swagger-router-controller": "middleware-name1",

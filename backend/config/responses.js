@@ -22,10 +22,18 @@ var success_msg = {
   bookingAccept:"Booking accept successfully",
   bookingCancel:"Booking cancel successsfully",
   bookingReject:"Booking reject succesfully",
+  bookingDetail:"Booking detail get successfully",
+  bookingHistory:"Booking history get successfully",
   typeOfVechileList:"List of vechile type get successfully.",
   priceList:"Vechile with price list get successfully",
   paymentIntent:"Payment intent create successfully",
-  stripeWebHookFrontEnd:"Stripe hit successfully"
+  stripeWebHookFrontEnd:"Stripe hit successfully",
+  rideStart:"Ride start succesfully",
+  bookingCancelDriver:"Booking cancel by driver successfully",
+  bookingComplete:"Booking complete successfully",
+  bookingCompleteByUser:"Booking complete status change by user",
+  bookingOnGoing:"Booking on going",
+  ratingDone:"Rating give successfully"
 };
 
 var failed_msg = {

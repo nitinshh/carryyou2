@@ -1076,7 +1076,7 @@ module.exports = {
         pickUpLongitude,
         driverId, // optional (if direct booking)
       } = req.body;
-
+      const otp = Math.floor(1000 + Math.random() * 9000);
       // 1️⃣ Create booking
       const booking = await Models.bookingModel.create({
         userId: req.user.id,
@@ -1092,7 +1092,8 @@ module.exports = {
         scheduleType: req.body.scheduleType, //1 for instant and 2 for schedule for future
         bookingDate: req.body.bookingDate || null,
         bookingTime: req.body.bookingDate || null,
-        paymentStatus:0
+        paymentStatus: 0,
+        otp: otp,
       });
 
       let userDetail = await Models.userModel.findOne({
@@ -1105,7 +1106,6 @@ module.exports = {
       );
       // const amount = parseFloat((req.body.amount * 100).toFixed(2));
       const amount = parseInt(Number(req.body.amount) * 100);
-
 
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
@@ -1134,7 +1134,7 @@ module.exports = {
         receiverId: adminId.id,
         amount: req.body.amount,
         transactionId: paymentIntent.id,
-        bookingId:booking.id
+        bookingId: booking.id,
       };
       await Models.transactionModel.create(objToSave);
       return commonHelper.success(
@@ -1142,8 +1142,6 @@ module.exports = {
         Response.success_msg.paymentIntent,
         result,
       );
-
-
 
       // 2️⃣ Find nearby drivers (10 KM)
       const drivers = await Models.userModel.findAll({
@@ -1246,7 +1244,7 @@ module.exports = {
           where: {
             status: 0, // ⏳ pending bookings only
             driverId: null, // not accepted by any driver
-            paymentStatus:1,
+            paymentStatus: 1,
             // ❌ Exclude rejected by this driver
             id: {
               [Op.notIn]: literal(`(
@@ -1283,12 +1281,101 @@ module.exports = {
     }
   },
 
+  bookingDetail: async (req, res) => {
+    try {
+      let response = await Models.bookingModel.findOne({
+        where: {
+          id: req.query.bookingId,
+        },
+        include: [
+          {
+            model: Models.userModel,
+            as: "user",
+          },
+          {
+            model: Models.userModel,
+            as: "driver",
+          },
+        ],
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.bookingDetail,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+   
+  bookingJobHistory:async (req, res) => {
+    try {
+      let response
+      if(req.user.role==1){
+       response = await Models.bookingModel.findOne({
+        where: {
+          userId: req.user.id,
+          status: {
+              [Op.in]: [0, 9, 6, 8],
+            },
+        },
+        include: [
+          {
+            model: Models.userModel,
+            as: "user",
+          },
+          {
+            model: Models.userModel,
+            as: "driver",
+          },
+        ],
+      });
+      }else if(req.user.role==2){
+      response = await Models.bookingModel.findOne({
+        where: {
+          driverId: req.user.id,
+          status: {
+              [Op.in]: [0, 9, 6, 8],
+            },
+        },
+        include: [
+          {
+            model: Models.userModel,
+            as: "user",
+          },
+          {
+            model: Models.userModel,
+            as: "driver",
+          },
+        ],
+      }); 
+      }
+      return commonHelper.success(
+        res,
+        Response.success_msg.bookingHistory,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
   bookingAcceptReject: (io) => async (req, res) => {
     try {
       // 1 for accpet 2 for reject 3 for cancel by user
       if (req.body.status == 1) {
         await Models.bookingModel.update(
-          { status: 1,driverId:req.user.id },
+          { status: 1, driverId: req.user.id, reason: req.body.reason },
           { where: { id: req.body.bookingId } },
         );
         let response = await Models.bookingModel.findOne({
@@ -1351,7 +1438,7 @@ module.exports = {
           Response.success_msg.bookingReject,
           response,
         );
-      }else if (req.body.status == 3) {
+      } else if (req.body.status == 3) {
         await Models.bookingModel.update(
           { status: 3 },
           { where: { id: req.body.bookingId } },
@@ -1381,7 +1468,7 @@ module.exports = {
           Response.success_msg.bookingCancel,
           response,
         );
-      } 
+      }
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
@@ -1392,7 +1479,235 @@ module.exports = {
     }
   },
 
-  
+  bookingStatusChange: (io) => async (req, res) => {
+    try {
+      //1 for accpet 2 for reject 3 for cancel by user
+      // 4 for start 5 for i am here 6 complete(in this 4 digit pin in this user will share pin with driver)
+      //  7 for cancel by driver 8 for compelet by user 9 for ongoing
+      if (req.body.status == 4) {
+        await Models.bookingModel.update(
+          { status: 4 },
+          { where: { id: req.body.bookingId } },
+        );
+        let response = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.userId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit("bookingStatusChange", response);
+        return commonHelper.success(
+          res,
+          Response.success_msg.rideStart,
+          response,
+        );
+      } else if (req.body.status == 5) {
+        await Models.bookingModel.update(
+          { status: 5 },
+          { where: { id: req.body.bookingId } },
+        );
+        let response = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.userId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit("bookingStatusChange", response);
+        return commonHelper.success(
+          res,
+          Response.success_msg.bookingReject,
+          response,
+        );
+      } else if (req.body.status == 6) {
+        let bookingDetail = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId,
+          },
+          raw: true,
+        });
+        if (req.body && req.body.otp == bookingDetail.opt) {
+          await Models.bookingModel.update(
+            { status: 6, otpVerify: 1 },
+            { where: { id: req.body.bookingId } },
+          );
+          let response = await Models.bookingModel.findOne({
+            where: {
+              id: req.body.bookingId,
+            },
+            include: [
+              {
+                model: Models.userModel,
+                as: "user",
+              },
+              {
+                model: Models.userModel,
+                as: "driver",
+              },
+            ],
+          });
+          let userDetail = await Models.userModel.findOne({
+            where: { id: response.userId },
+            raw: true,
+          });
+          io.to(userDetail.socketId).emit("bookingStatusChange", response);
+          return commonHelper.success(
+            res,
+            Response.success_msg.bookingComplete,
+            response,
+          );
+        } else {
+          return commonHelper.failed(res, Response.failed_msg.invalidOtp);
+        }
+      } else if (req.body.status == 7) {
+        await Models.bookingModel.update(
+          { status: 7 },
+          { where: { id: req.body.bookingId } },
+        );
+        let response = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.userId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit("bookingStatusChange", response);
+        return commonHelper.success(
+          res,
+          Response.success_msg.bookingCancelDriver,
+          response,
+        );
+      } else if (req.body.status == 8) {
+        await Models.bookingModel.update(
+          { status: 8 },
+          { where: { id: req.body.bookingId } },
+        );
+        let response = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.driverId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit("bookingStatusChange", response);
+        return commonHelper.success(
+          res,
+          Response.success_msg.bookingCompleteByUser,
+          response,
+        );
+      }else if (req.body.status == 8) {
+        await Models.bookingModel.update(
+          { status: 9 },
+          { where: { id: req.body.bookingId } },
+        );
+        let response = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.driverId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit("bookingStatusChange", response);
+        return commonHelper.success(
+          res,
+          Response.success_msg.bookingOnGoing,
+          response,
+        );
+      }
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
+  ratingDriver: async (req, res) => {
+    try {
+      let objToSave = {
+        userId: req.user.id,
+        driverId: req.body.driverId,
+        rating: req.body.rating,
+      };
+      let response = await Models.ratingModel.create(objToSave);
+      return commonHelper.success(
+        res,
+        Response.success_msg.ratingDone,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+
   calculate_price: async (req, res) => {
     try {
       let {
@@ -1566,29 +1881,38 @@ module.exports = {
       const paymentIntent = await stripe.paymentIntents.retrieve(
         req.body.transactionId,
       );
-      let transactionDetail=await Models.transactionModel.findOne({where:{transactionId:req.body.transactionId},raw:true})
-      if( paymentIntent.status === "succeeded"){
-          await Models.transactionModel.update(
-        {
-          paymentStatus:1
-        },
-        {
-          where: {
-            transactionId: req.body.transactionId,
+      let transactionDetail = await Models.transactionModel.findOne({
+        where: { transactionId: req.body.transactionId },
+        raw: true,
+      });
+      if (paymentIntent.status === "succeeded") {
+        await Models.transactionModel.update(
+          {
+            paymentStatus: 1,
           },
-        },
-      );
-        await Models.bookingModel.update({paymentStatus:1},{where:{id:transactionDetail.bookingId}})
-        let bookingDetail=await Models.bookingModel.findOne({where:{id:transactionDetail.bookingId},raw:true})
+          {
+            where: {
+              transactionId: req.body.transactionId,
+            },
+          },
+        );
+        await Models.bookingModel.update(
+          { paymentStatus: 1 },
+          { where: { id: transactionDetail.bookingId } },
+        );
+        let bookingDetail = await Models.bookingModel.findOne({
+          where: { id: transactionDetail.bookingId },
+          raw: true,
+        });
         // 2️⃣ Find nearby drivers (10 KM)
-      const drivers = await Models.userModel.findAll({
-        attributes: [
-          "id",
-          "socketId",
-          "latitude",
-          "longitude",
-          [
-            Sequelize.literal(`
+        const drivers = await Models.userModel.findAll({
+          attributes: [
+            "id",
+            "socketId",
+            "latitude",
+            "longitude",
+            [
+              Sequelize.literal(`
             (6371 * acos(
               cos(radians(${bookingDetail.pickUpLatitude}))
               * cos(radians(latitude))
@@ -1597,23 +1921,23 @@ module.exports = {
               * sin(radians(latitude))
             ))
           `),
-            "distance",
+              "distance",
+            ],
           ],
-        ],
-        where: {
-          role: 2, // DRIVER ROLE
-          isOnline: 1,
-          socketId: { [Op.ne]: null },
-        },
-        having: Sequelize.literal("distance <= 10"),
-        order: [[Sequelize.literal("distance"), "ASC"]],
-        raw: true,
-      });
+          where: {
+            role: 2, // DRIVER ROLE
+            isOnline: 1,
+            socketId: { [Op.ne]: null },
+          },
+          having: Sequelize.literal("distance <= 10"),
+          order: [[Sequelize.literal("distance"), "ASC"]],
+          raw: true,
+        });
 
-      // 3️⃣ Emit to all nearby drivers
-      drivers.forEach((driver) => {
-        io.to(driver.socketId).emit("createBooking", booking);
-      });
+        // 3️⃣ Emit to all nearby drivers
+        drivers.forEach((driver) => {
+          io.to(driver.socketId).emit("createBooking", booking);
+        });
       }
       return commonHelper.success(
         res,

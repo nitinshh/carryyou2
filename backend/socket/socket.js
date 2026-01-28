@@ -18,6 +18,24 @@ module.exports = function (io) {
     //This return IP with port
     console.log("socket.handshake.headers.host", socket.handshake.headers.host);
     // console.log("socket",socket)
+
+    socket.on("driver_location_update",async function(data){
+      await Models.userModel.update({
+        latitude:data.latitude,
+        longitude:data.longitude,
+        location:data.location
+      },{
+        where:{
+          id:data.driverId
+        }
+      })
+      let response=await Models.userModel.findOne({
+        where:{
+          id:data.driverId
+        }
+      })
+      socket.emit("driver_location_update", response);
+    });
     //Connect the user  //Test pass
     socket.on("connect_user", async function (data) {
       try {
