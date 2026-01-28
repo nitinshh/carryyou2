@@ -74,7 +74,7 @@ module.exports = function (io) {
   router.post("/getPriceListWithVechile",controller.userController.getPriceListWithVechile)
   router.post("/createBooking",authentication,controller.userController.createBooking(io))
   router.get("/bookingList",authentication,controller.userController.bookingList)
-  router.post("/bookingAcceptReject",authentication,controller.userController.bookingAcceptReject)
+  router.post("/bookingAcceptReject",authentication,controller.userController.bookingAcceptReject(io))
   router.get(
     "/stripeDetailReturn",
     controller.userController.stripeDetailReturn

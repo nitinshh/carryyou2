@@ -1251,7 +1251,7 @@ module.exports = {
             id: {
               [Op.notIn]: literal(`(
               SELECT bookingId
-              FROM bookingRejectBy
+              FROM bookingRejectedBy
               WHERE driverId = '${req.user.id}'
             )`),
             },
@@ -1262,7 +1262,7 @@ module.exports = {
             {
               model: Models.userModel,
               as: "user",
-              attributes: ["id", "firstName", "lastName", "phoneNumber"],
+              attributes: ["id", "fullName", "phoneNumber"],
             },
           ],
         });
@@ -1288,7 +1288,7 @@ module.exports = {
       // 1 for accpet 2 for reject 3 for cancel by user
       if (req.body.status == 1) {
         await Models.bookingModel.update(
-          { status: 1 },
+          { status: 1,driverId:req.user.id },
           { where: { id: req.body.bookingId } },
         );
         let response = await Models.bookingModel.findOne({
