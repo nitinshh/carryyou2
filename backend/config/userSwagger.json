@@ -1335,6 +1335,15 @@
           }
         ],
         "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Enter the status",
+            "required": true,
+            "enum":[0,1,2],
+            "type": "number",
+            "value": ""
+          }
         ],
         "responses": {
           "200": { "description": "Rating successful" },

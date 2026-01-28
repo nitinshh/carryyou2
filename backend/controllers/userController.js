@@ -1312,18 +1312,33 @@ module.exports = {
       );
     }
   },
-   
-  bookingJobHistory:async (req, res) => {
+
+  bookingJobHistory: async (req, res) => {
     try {
-      let response
-      if(req.user.role==1){
-       response = await Models.bookingModel.findOne({
-        where: {
-          userId: req.user.id,
-          status: {
-              [Op.in]: [0, 9, 6, 8],
-            },
-        },
+      const { status } = req.query;
+
+      // Decide column based on role
+      const whereCondition = {};
+
+      if (req.user.role === 1) {
+        whereCondition.userId = req.user.id;
+      } else if (req.user.role === 2) {
+        whereCondition.driverId = req.user.id;
+      }
+
+      // Status mapping
+      if (status == 0) {
+        whereCondition.status = 9;
+      } else if (status == 1) {
+        whereCondition.status = 0;
+      } else {
+        whereCondition.status = {
+          [Op.in]: [6, 8],
+        };
+      }
+
+      const response = await Models.bookingModel.findOne({
+        where: whereCondition,
         include: [
           {
             model: Models.userModel,
@@ -1335,33 +1350,14 @@ module.exports = {
           },
         ],
       });
-      }else if(req.user.role==2){
-      response = await Models.bookingModel.findOne({
-        where: {
-          driverId: req.user.id,
-          status: {
-              [Op.in]: [0, 9, 6, 8],
-            },
-        },
-        include: [
-          {
-            model: Models.userModel,
-            as: "user",
-          },
-          {
-            model: Models.userModel,
-            as: "driver",
-          },
-        ],
-      }); 
-      }
+
       return commonHelper.success(
         res,
         Response.success_msg.bookingHistory,
         response,
       );
     } catch (error) {
-      console.log("error", error);
+      console.log("bookingJobHistory error:", error);
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
@@ -1644,7 +1640,7 @@ module.exports = {
           Response.success_msg.bookingCompleteByUser,
           response,
         );
-      }else if (req.body.status == 8) {
+      } else if (req.body.status == 8) {
         await Models.bookingModel.update(
           { status: 9 },
           { where: { id: req.body.bookingId } },
