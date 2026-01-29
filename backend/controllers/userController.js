@@ -1552,7 +1552,7 @@ module.exports = {
           },
           raw: true,
         });
-        if (req.body && req.body.otp == bookingDetail.opt) {
+        // if (req.body && req.body.otp == bookingDetail.opt) {
           await Models.bookingModel.update(
             { status: 6, otpVerify: 1 },
             { where: { id: req.body.bookingId } },
@@ -1582,9 +1582,9 @@ module.exports = {
             Response.success_msg.bookingComplete,
             response,
           );
-        } else {
-          return commonHelper.failed(res, Response.failed_msg.invalidOtp);
-        }
+        // } else {
+        //   return commonHelper.failed(res, Response.failed_msg.invalidOtp);
+        // }
       } else if (req.body.status == 7) {
         await Models.bookingModel.update(
           { status: 7 },
