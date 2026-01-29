@@ -1306,6 +1306,14 @@
           }
         ],
         "parameters": [
+           {
+            "name": "bookingId",
+            "in": "formData",
+            "description": "Enter the bookingId",
+            "required": false,
+            "type": "string",
+            "value": ""
+          },
           {
             "name": "status",
             "in": "formData",
@@ -1333,7 +1341,7 @@
       }
     },
     "/users/bookingDetail": {
-      "post": {
+      "get": {
         "x-swagger-router-controller": "middleware-name1",
         "operationId": "users-bookingDetail-post",
         "tags": ["Application User"],
@@ -1379,6 +1387,22 @@
             "description": "Enter the status",
             "required": true,
             "enum":[0,1,2],
+            "type": "number",
+            "value": ""
+          },
+           {
+            "name": "limit",
+            "in": "query",
+            "description": "Enter the limit",
+            "required": false,
+            "type": "number",
+            "value": ""
+          },
+           {
+            "name": "skip",
+            "in": "query",
+            "description": "Enter the skip",
+            "required": false,
             "type": "number",
             "value": ""
           }

@@ -1316,7 +1316,9 @@ module.exports = {
   bookingJobHistory: async (req, res) => {
     try {
       const { status } = req.query;
-
+      const limit = parseInt(req.query.limit, 10) || 10;
+      const skip = parseInt(req.query.skip, 10) || 0;
+      const offset = skip * limit;
       // Decide column based on role
       const whereCondition = {};
 
@@ -1337,7 +1339,7 @@ module.exports = {
         };
       }
 
-      const response = await Models.bookingModel.findOne({
+      const response = await Models.bookingModel.findAll({
         where: whereCondition,
         include: [
           {
@@ -1349,6 +1351,9 @@ module.exports = {
             as: "driver",
           },
         ],
+        limit,
+        offset,
+        order: [["createdAt", "DESC"]],
       });
 
       return commonHelper.success(
