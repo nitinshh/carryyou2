@@ -1264,6 +1264,12 @@ module.exports = {
             },
           ],
         });
+        let acceptedBooking=await Models.bookingModel.findAll({
+          where:{
+            driverId:req.user.id
+          }
+        })
+        response.push(acceptedBooking)
       }
 
       return commonHelper.success(
