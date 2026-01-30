@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Users,Car,FileText, HelpCircle, Info, ShieldCheck } from "lucide-react";
+import { Home, Users,Car,FileText, HelpCircle, Info, ShieldCheck, CarFront } from "lucide-react";
 
 const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
   const location = useLocation();
@@ -65,11 +65,17 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
               icon: <Users />,
               label: "Users",
             },
-              {
+            {
               to: "/driver_listing",
               routes: ["/driver_listing", "/driver_edit", "/driver_view"],
               icon: <Car />,
               label: "Driver",
+            },
+            {
+              to: "/typeOfVechile_listing",
+              routes: ["/typeOfVechile_listing", "/typeOfVechile_edit","/typeOfVechile_add", "/typeOfVechile_view"],
+              icon: <CarFront />,
+              label: "Type Of Vechile",
             },
              {
               to: "/contactUs_listing",

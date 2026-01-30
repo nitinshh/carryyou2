@@ -5,6 +5,7 @@ import {
   Users,
   ChevronDown,
   Car,
+  CarFront,
 } from "lucide-react";
 import {
   LineChart,
@@ -98,6 +99,7 @@ const Dashboard = () => {
             recentUserUpdateProfile:
               response.body.recentUserUpdateProfile || null,
             monthData: response.body.monthData || [],
+            typeOfVechile:response.body.typeOfVechicle||0
           });
         }
       } catch (error) {
@@ -143,13 +145,20 @@ const Dashboard = () => {
       icon: <Users size={20} />,
       path: "/users_listing",
     },
-      {
-      id: 1,
+    {
+      id: 2,
       title: "Driver",
       count: statsData.driverCount,
       icon: <Car size={20} />,
       path: "/driver_listing",
     },
+    {
+      id: 3,
+      title: "Type Of Vechile",
+      count: statsData.typeOfVechile,
+      icon: <CarFront size={20} />,
+      path: "/typeOfVechile_listing",
+    }, 
   ];
 
   const recentActivities = [

@@ -27,8 +27,9 @@ module.exports=function(){
 
      router.post("/addTypeOfVechile",controller.frontendController.addTypeOfVechile)
      router.get("/getTypeOfVechleList",controller.frontendController.getTypeOfVechileList)
+     router.get("/getDetailTypeOfVechile/:id",controller.frontendController.getDetailTypeOfVechile)
      router.put("/updateTypeOfVechile",controller.frontendController.updateTypeOfVechile)
-     router.delete("/deleteTypeOfVechile",controller.frontendController.deleteTypeOfVechile)
+     router.delete("/deleteTypeOfVechile/:id",controller.frontendController.deleteTypeOfVechile)
 
 
      router.get("/cms/:type",controller.frontendController.cms)

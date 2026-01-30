@@ -26,6 +26,7 @@ const ApiEndPoint = {
   getTypeOfVechleList: `${API_BASE_URL}/api/getTypeOfVechleList`,
   updateTypeOfVechile: `${API_BASE_URL}/api/updateTypeOfVechile`,
   deleteTypeOfVechile: `${API_BASE_URL}/api/deleteTypeOfVechile`,
+  getDetailTypeOfVechile: `${API_BASE_URL}/api/getDetailTypeOfVechile`,
 
   // Banners Endpoints
   bannerList: `${API_BASE_URL}/api/bannerList`,

@@ -18,6 +18,11 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: 0.0,
       },
+      isDelete:{
+        type:DataTypes.INTEGER,
+        allowNull:true,
+        defaultValue:0
+      }
     },
     {
       timestamps: true,

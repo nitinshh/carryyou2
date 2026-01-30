@@ -20,6 +20,9 @@ import PrivacyPolicy from "./pages/CMS/PrivacyPolicy";
 import TermsAndCondition from "./pages/CMS/TermsAndCondition";
 import ConstactUsList from "./pages/ContactUs/ContactUsList";
 import ContactUsView from "./pages/ContactUs/ContactUsView";
+import TypeOfVechileList from "./pages/TypeOfVechile/TypeOfVechileList"
+import TypeOfVechileAddEdit from "./pages/TypeOfVechile/TypeOfVechileAddEdit";
+import TypeOfVechileView from "./pages/TypeOfVechile/TypeOfVechileView";
 function App() {
   // const isAuthenticated = false;
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -64,6 +67,10 @@ function App() {
             <Route path="/driver_edit/:userId" element={<DriverEdit />} />
             <Route path="/driver_view/:userId" element={<DriverView />} />
 
+            <Route path="/typeOfVechile_listing" element={<TypeOfVechileList />} />
+            <Route path="/typeOfVechile_add" element={<TypeOfVechileAddEdit />} />
+            <Route path="/typeOfVechile_edit/:typeOfVechileId" element={<TypeOfVechileAddEdit />} />
+            <Route path="/typeOfVechile_view/:id" element={<TypeOfVechileView />} />
 
             <Route path="/aboutUs" element={<AboutUs />} />
             <Route path="/privacyPolicy" element={<PrivacyPolicy />} />

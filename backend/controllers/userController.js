@@ -978,7 +978,7 @@ module.exports = {
 
   getTypeOfVechileList: async (req, res) => {
     try {
-      let response = await Models.typeOfVechicleModel.findAll();
+      let response = await Models.typeOfVechicleModel.findAll({where:{isDelete:0}});
       return commonHelper.success(
         res,
         Response.success_msg.typeOfVechileList,

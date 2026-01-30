@@ -245,9 +245,11 @@ module.exports = {
           users: match ? parseInt(match.users) : 0,
         };
       });
+      let typeOfVechile=await Models.typeOfVechicleModel.count({where:{isDelete:0}})
       let response = {
         userCount: userCount,
         driverCount:driverCount,
+        typeOfVechicle:typeOfVechile,
         recentUser: recentUser,
         recentUserUpdateProfile: recentUserUpdateProfile,
         monthData: monthData,
@@ -594,12 +596,7 @@ module.exports = {
         price:req.body.price
        }
       const newBanner = await Models.typeOfVechicleModel.create(objToSave);
-
-      return res.status(200).json({
-        success: true,
-        message: "Type of vechile added successfully",
-        data: newBanner,
-      });
+      return commonHelper.success(res, "Type of vechile add successfully",newBanner);
     } catch (error) {
       console.log("Error:", error);
       return commonHelper.error(
@@ -623,21 +620,39 @@ module.exports = {
           },
         }
         : {};
-
-      const { count, rows } = await Models.typeOfVechicleModel.findAndCountAll({
+       whereCondition.isDelete=0
+      const response = await Models.typeOfVechicleModel.findAndCountAll({
         where: whereCondition,
         limit: parseInt(limit),
         offset: parseInt(offset),
         order: [["createdAt", "DESC"]],
       });
-
-      return res.status(200).json({
-        success: true,
-        data: rows,
-        totalCount: count,
-        totalPages: Math.ceil(count / limit),
-        currentPage: parseInt(page),
-      });
+     return commonHelper.success(res, "Type of vechile list fetch successfully.",response)
+      // return res.status(200).json({
+      //   success: true,
+      //   response,
+      //   // data: rows,
+      //   // totalCount: count,
+      //   // totalPages: Math.ceil(count / limit),
+      //   // currentPage: parseInt(page),
+      // });
+    } catch (error) {
+      console.log("Error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+  getDetailTypeOfVechile:async(req,res)=>{
+      try {
+      let typeOfVechile=await Models.typeOfVechicleModel.findOne({
+        where:{
+          id:req.params.id
+        },raw:true
+      })
+      return commonHelper.success(res, "Type of vechile get successfully",typeOfVechile);
     } catch (error) {
       console.log("Error:", error);
       return commonHelper.error(
@@ -665,12 +680,7 @@ module.exports = {
         price:req.body.price
        }
       const newBanner = await Models.typeOfVechicleModel.update(objToSave,{where:{id:req.body.id}});
-
-      return res.status(200).json({
-        success: true,
-        message: "Type of vechile update successfully",
-        data: newBanner,
-      });
+      return commonHelper.success(res, "Type of vechile update successfully",newBanner);
     } catch (error) {
       console.log("Error:", error);
       return commonHelper.error(
@@ -684,16 +694,12 @@ module.exports = {
     try {
       const { id } = req.params;
 
-      const typeOfVechile = await Models.typeOfVechicleModel.findOne({
-        where: { id },
-      });
-
-      await typeOfVechile.destroy();
-
-      return res.status(200).json({
-        success: true,
-        message: "Type of vechile deleted successfully",
-      });
+      // const typeOfVechile = await Models.typeOfVechicleModel.findOne({
+      //   where: { id },
+      // });
+      await Models.typeOfVechicleModel.update({isDelete:1},{where:{id:id}})
+      // await typeOfVechile.destroy();
+      return commonHelper.success(res, "Type of vechile delete successfully",newBanner);
     } catch (error) {
       console.log("Error:", error);
       return commonHelper.error(
