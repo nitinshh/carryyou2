@@ -1269,7 +1269,12 @@ module.exports = {
             driverId:req.user.id
           }
         })
-        response.push(acceptedBooking)
+       if (acceptedBooking && acceptedBooking.length > 0) {
+         acceptedBooking.forEach((item) => {
+           response.push(item);
+         });
+       }
+
       }
 
       return commonHelper.success(
