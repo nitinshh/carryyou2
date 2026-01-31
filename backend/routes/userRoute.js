@@ -79,6 +79,7 @@ module.exports = function (io) {
   router.post("/ratingDriver",authentication,controller.userController.ratingDriver)
   router.get("/bookingDetail",authentication,controller.userController.bookingDetail)
   router.get("/bookingJobHistory",authentication,controller.userController.bookingJobHistory)
+  router.get("/reviewsListing",authentication,controller.userController.reviewsListing)
   router.get(
     "/stripeDetailReturn",
     controller.userController.stripeDetailReturn

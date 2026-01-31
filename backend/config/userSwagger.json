@@ -1415,6 +1415,35 @@
         }
       }
     },
+     "/users/reviewsListing": {
+      "get": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-reviewsListing-post",
+        "tags": ["Application User"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+           {
+            "name": "driverId",
+            "in": "query",
+            "description": "Enter the driverId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Rating detail successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
     "/users/stripeDetailReturn": {
       "get": {
         "x-swagger-router-controller": "middleware-name1",

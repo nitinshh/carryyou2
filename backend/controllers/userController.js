@@ -14,8 +14,9 @@ const Response = require("../config/responses.js");
 
 Models.bookingModel.belongsTo(Models.userModel,{foreignKey:"userId",as:"user"})
 Models.bookingModel.belongsTo(Models.userModel,{foreignKey:"driverId",as:"driver"})
-
-
+Models.bookingModel.belongsTo(Models.typeOfVechicleModel,{foreignKey:"typeOfVehicleId"})
+Models.ratingModel.belongsTo(Models.userModel,{foreignKey:"userId",as:"user"})
+Models.ratingModel.belongsTo(Models.userModel,{foreignKey:"driverId",as:"driver"})
 module.exports = {
   signUp: async (req, res) => {
     try {
@@ -978,7 +979,9 @@ module.exports = {
 
   getTypeOfVechileList: async (req, res) => {
     try {
-      let response = await Models.typeOfVechicleModel.findAll({where:{isDelete:0}});
+      let response = await Models.typeOfVechicleModel.findAll({
+        where: { isDelete: 0 },
+      });
       return commonHelper.success(
         res,
         Response.success_msg.typeOfVechileList,
@@ -1122,6 +1125,7 @@ module.exports = {
         customer: userDetail.customerId,
         publishableKey: process.env.STRIPE_PK_KEY,
         transactionId: paymentIntent.id,
+        bookingId: booking.id,
       };
       let adminId = await Models.userModel.findOne({
         where: {
@@ -1264,17 +1268,16 @@ module.exports = {
             },
           ],
         });
-        let acceptedBooking=await Models.bookingModel.findAll({
-          where:{
-            driverId:req.user.id
-          }
-        })
-       if (acceptedBooking && acceptedBooking.length > 0) {
-         acceptedBooking.forEach((item) => {
-           response.push(item);
-         });
-       }
-
+        let acceptedBooking = await Models.bookingModel.findAll({
+          where: {
+            driverId: req.user.id,
+          },
+        });
+        if (acceptedBooking && acceptedBooking.length > 0) {
+          acceptedBooking.forEach((item) => {
+            response.push(item);
+          });
+        }
       }
 
       return commonHelper.success(
@@ -1300,15 +1303,31 @@ module.exports = {
         },
         include: [
           {
+            model:Models.typeOfVechicleModel
+          },
+          {
             model: Models.userModel,
             as: "user",
           },
           {
             model: Models.userModel,
             as: "driver",
+            attributes: {
+              include: [
+                [
+                  Sequelize.literal(`(
+                  SELECT ROUND(AVG(rating), 1)
+                  FROM ratings
+                  WHERE ratings.driverId = driver.id
+                )`),
+                  "avgRating",
+                ],
+              ],
+            },
           },
         ],
       });
+
       return commonHelper.success(
         res,
         Response.success_msg.bookingDetail,
@@ -1381,7 +1400,37 @@ module.exports = {
       );
     }
   },
-
+  reviewsListing:async(rew,res)=>{
+      try {
+      let response = await Models.ratingModel.findAll({
+        where:{
+          driverId:req.query.driverId
+        },
+        include:[
+          {
+            model:Models.userModel,
+            as:"user"
+          },
+          {
+            model:Models.userModel,
+            as:"driver"
+          }
+        ]
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.ratingDone,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
   bookingAcceptReject: (io) => async (req, res) => {
     try {
       // 1 for accpet 2 for reject 3 for cancel by user
@@ -1564,35 +1613,35 @@ module.exports = {
           raw: true,
         });
         // if (req.body && req.body.otp == bookingDetail.opt) {
-          await Models.bookingModel.update(
-            { status: 6, otpVerify: 1 },
-            { where: { id: req.body.bookingId } },
-          );
-          let response = await Models.bookingModel.findOne({
-            where: {
-              id: req.body.bookingId,
+        await Models.bookingModel.update(
+          { status: 6, otpVerify: 1 },
+          { where: { id: req.body.bookingId } },
+        );
+        let response = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
             },
-            include: [
-              {
-                model: Models.userModel,
-                as: "user",
-              },
-              {
-                model: Models.userModel,
-                as: "driver",
-              },
-            ],
-          });
-          let userDetail = await Models.userModel.findOne({
-            where: { id: response.userId },
-            raw: true,
-          });
-          io.to(userDetail.socketId).emit("bookingStatusChange", response);
-          return commonHelper.success(
-            res,
-            Response.success_msg.bookingComplete,
-            response,
-          );
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.userId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit("bookingStatusChange", response);
+        return commonHelper.success(
+          res,
+          Response.success_msg.bookingComplete,
+          response,
+        );
         // } else {
         //   return commonHelper.failed(res, Response.failed_msg.invalidOtp);
         // }
