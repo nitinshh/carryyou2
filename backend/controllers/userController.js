@@ -1303,7 +1303,7 @@ module.exports = {
         },
         include: [
           {
-            model:Models.typeOfVechicleModel
+            model: Models.typeOfVechicleModel,
           },
           {
             model: Models.userModel,
@@ -1316,10 +1316,10 @@ module.exports = {
               include: [
                 [
                   Sequelize.literal(`(
-                  SELECT ROUND(AVG(rating), 1)
-                  FROM ratings
-                  WHERE ratings.driverId = driver.id
-                )`),
+        SELECT COALESCE(ROUND(AVG(rating), 1), 0)
+        FROM ratings
+        WHERE ratings.driverId = driver.id
+      )`),
                   "avgRating",
                 ],
               ],
