@@ -1258,7 +1258,7 @@ module.exports = {
             )`),
             },
           },
-          having: Sequelize.literal("distance <= 10"),
+          having: Sequelize.literal("distance <= 100"),
           order: [[Sequelize.literal("distance"), "ASC"]],
           include: [
             {
