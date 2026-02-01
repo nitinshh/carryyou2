@@ -1994,7 +1994,7 @@ module.exports = {
           order: [[Sequelize.literal("distance"), "ASC"]],
           raw: true,
         });
-      //  console.log("drivers",drivers)
+       console.log("drivers",drivers)
         // 3️⃣ Emit to all nearby drivers
         drivers.forEach((driver) => {
           io.to(driver.socketId).emit("createBooking", bookingDetail);
