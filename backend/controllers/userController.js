@@ -1436,7 +1436,7 @@ module.exports = {
       // 1 for accpet 2 for reject 3 for cancel by user
       if (req.body.status == 1) {
         await Models.bookingModel.update(
-          { status: 1, driverId: req.user.id, reason: req.body.reason },
+          { status: 1, driverId: req.user.id },
           { where: { id: req.body.bookingId } },
         );
         let response = await Models.bookingModel.findOne({
@@ -1501,7 +1501,7 @@ module.exports = {
         );
       } else if (req.body.status == 3) {
         await Models.bookingModel.update(
-          { status: 3 },
+          { status: 3 , reason: req.body.reason},
           { where: { id: req.body.bookingId } },
         );
         let response = await Models.bookingModel.findOne({
@@ -1990,11 +1990,11 @@ module.exports = {
             isOnline: 1,
             socketId: { [Op.ne]: null },
           },
-          having: Sequelize.literal("distance <= 10"),
+          having: Sequelize.literal("distance <= 100"),
           order: [[Sequelize.literal("distance"), "ASC"]],
           raw: true,
         });
-
+      //  console.log("drivers",drivers)
         // 3️⃣ Emit to all nearby drivers
         drivers.forEach((driver) => {
           io.to(driver.socketId).emit("createBooking", bookingDetail);
