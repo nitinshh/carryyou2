@@ -1937,7 +1937,7 @@ module.exports = {
     }
   },
 
-  webHookFrontEnd: async (req, res) => {
+  webHookFrontEnd:(io)=> async (req, res) => {
     try {
       const paymentIntent = await stripe.paymentIntents.retrieve(
         req.body.transactionId,
@@ -1997,7 +1997,7 @@ module.exports = {
 
         // 3️⃣ Emit to all nearby drivers
         drivers.forEach((driver) => {
-          io.to(driver.socketId).emit("createBooking", booking);
+          io.to(driver.socketId).emit("createBooking", bookingDetail);
         });
       }
       return commonHelper.success(
