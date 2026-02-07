@@ -671,7 +671,7 @@ module.exports = {
         },raw:true
       })
       let image;
-      if(req.files&&req.files,image){
+      if(req.files&&req.files.image){
         image = await commonHelper.fileUpload(req.files.image, "images");
       }
        let objToSave={
