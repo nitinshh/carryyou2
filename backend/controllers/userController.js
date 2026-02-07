@@ -1226,6 +1226,9 @@ module.exports = {
         }
 
         const { latitude, longitude } = driver;
+          // 2️⃣ Time calculation
+        const now = new Date();
+        const before30Min = new Date(now.getTime() - 30 * 60 * 1000);
         // 2️⃣ Find nearby bookings (10 KM)
         response = await Models.bookingModel.findAll({
           attributes: {
@@ -1248,6 +1251,20 @@ module.exports = {
             status: 0, // ⏳ pending bookings only
             driverId: null, // not accepted by any driver
             paymentStatus: 1,
+            // 👇 schedule logic here
+            [Op.or]: [
+              // 🔹 Instant bookings: always show
+              { scheduleType: 1 },
+
+              // 🔹 Scheduled bookings: show only within 30 min before booking time or after
+              Sequelize.literal(`
+          scheduleType = 2
+          AND TIMESTAMP(bookingDate, bookingTime) >= '${before30Min
+            .toISOString()
+            .slice(0, 19)
+            .replace("T", " ")}'
+        `),
+            ],
             // ❌ Exclude rejected by this driver
             id: {
               [Op.notIn]: literal(`(
@@ -1523,11 +1540,12 @@ module.exports = {
             },
           ],
         });
-        let userDetail = await Models.userModel.findOne({
-          where: { id: response.driverId },
-          raw: true,
-        });
-        if(bookingDetail){
+
+        if (bookingDetail && bookingDetail.driverId) {
+          let userDetail = await Models.userModel.findOne({
+            where: { id: response.driverId },
+            raw: true,
+          });
           io.to(userDetail.socketId).emit("cancelBooking", response);
         }
         return commonHelper.success(
