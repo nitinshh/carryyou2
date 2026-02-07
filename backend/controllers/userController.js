@@ -1094,7 +1094,7 @@ module.exports = {
         typeOfVehicleId: req.body.typeOfVehicleId,
         scheduleType: req.body.scheduleType, //1 for instant and 2 for schedule for future
         bookingDate: req.body.bookingDate || null,
-        bookingTime: req.body.bookingDate || null,
+        bookingTime: req.body.bookingTime || null,
         paymentStatus: 0,
         otp: otp,
       });

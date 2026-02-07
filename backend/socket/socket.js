@@ -85,24 +85,10 @@ module.exports = function (io) {
             {
               model: Models.userModel,
               as: "sender",
-              attributes: [
-                "id",
-                "firstName",
-                "lastName",
-                "profilePicture",
-                "email",
-              ],
             },
             {
               model: Models.userModel,
-              as: "receiver",
-              attributes: [
-                "id",
-                "firstName",
-                "lastName",
-                "profilePicture",
-                "email",
-              ],
+              as: "receiver"
             },
           ],
         });
@@ -146,12 +132,10 @@ module.exports = function (io) {
               {
                 model: Models.userModel,
                 as: "sender",
-                attributes: ["id", "firstName", "lastName", "profilePicture"],
               },
               {
                 model: Models.userModel,
                 as: "receiver",
-                attributes: ["id", "firstName", "lastName", "profilePicture"],
               },
             ],
             order: [["createdAt", "ASC"]], // Optional: sort by message time
@@ -248,24 +232,10 @@ module.exports = function (io) {
             {
               model: Models.userModel,
               as: "sender",
-              attributes: [
-                "id",
-                "firstName",
-                "lastName",
-                "profilePicture",
-                "email",
-              ],
             },
             {
               model: Models.userModel,
               as: "receiver",
-              attributes: [
-                "id",
-                "firstName",
-                "lastName",
-                "profilePicture",
-                "email",
-              ],
             },
           ],
           order: [["updatedAt", "DESC"]],
