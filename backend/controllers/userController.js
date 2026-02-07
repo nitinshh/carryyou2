@@ -1281,6 +1281,7 @@ module.exports = {
               attributes: ["id", "fullName", "phoneNumber"],
             },
           ],
+          limit:1
         });
         // let acceptedBooking = await Models.bookingModel.findAll({
         //   where: {
