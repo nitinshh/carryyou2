@@ -11,12 +11,14 @@ const Models = require("../models/index");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const crypto = require("crypto");
 const Response = require("../config/responses.js");
+const { error } = require("console");
 
 Models.bookingModel.belongsTo(Models.userModel,{foreignKey:"userId",as:"user"})
 Models.bookingModel.belongsTo(Models.userModel,{foreignKey:"driverId",as:"driver"})
 Models.bookingModel.belongsTo(Models.typeOfVechicleModel,{foreignKey:"typeOfVehicleId"})
 Models.ratingModel.belongsTo(Models.userModel,{foreignKey:"userId",as:"user"})
 Models.ratingModel.belongsTo(Models.userModel,{foreignKey:"driverId",as:"driver"})
+
 module.exports = {
   signUp: async (req, res) => {
     try {
@@ -2014,7 +2016,6 @@ module.exports = {
           order: [[Sequelize.literal("distance"), "ASC"]],
           raw: true,
         });
-       console.log("drivers",drivers)
         // 3️⃣ Emit to all nearby drivers
         drivers.forEach((driver) => {
           io.to(driver.socketId).emit("createBooking", bookingDetail);

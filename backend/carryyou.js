@@ -23,6 +23,8 @@ const io = require("socket.io")(server);
 const indexRouter = require("./routes/index");
 const usersRouter = require("./routes/userRoute")(io);
 const adminRouter = require("./routes/adminRouter")();
+const {startBookingCron }=require("./corn/bookingCron")
+startBookingCron (io)
 
 const CLIENT_ADMIN_URL = process.env.CLIENT_ADMIN_URL || "http://localhost:5173";
 
