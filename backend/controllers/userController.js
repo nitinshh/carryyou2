@@ -1285,6 +1285,9 @@ module.exports = {
         let acceptedBooking = await Models.bookingModel.findAll({
           where: {
             driverId: req.user.id,
+            status: {
+              [Op.notIn]: [1], // exclude status 1 and 2
+            },
           },
         });
         if (acceptedBooking && acceptedBooking.length > 0) {
