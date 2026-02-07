@@ -1226,9 +1226,6 @@ module.exports = {
         }
 
         const { latitude, longitude } = driver;
-        console.log("latitude,",latitude)
-        console.log("longitude",longitude)
-        // return
         // 2️⃣ Find nearby bookings (10 KM)
         response = await Models.bookingModel.findAll({
           attributes: {
@@ -1506,6 +1503,11 @@ module.exports = {
           { status: 3 , reason: req.body.reason},
           { where: { id: req.body.bookingId } },
         );
+        let bookingDetail=await Models.bookingModel.findOne({
+          where:{
+            id:req.body.bookingId
+          },raw:true
+        })
         let response = await Models.bookingModel.findOne({
           where: {
             id: req.body.bookingId,
@@ -1525,7 +1527,9 @@ module.exports = {
           where: { id: response.driverId },
           raw: true,
         });
-        io.to(userDetail.socketId).emit("cancelBooking", response);
+        if(bookingDetail){
+          io.to(userDetail.socketId).emit("cancelBooking", response);
+        }
         return commonHelper.success(
           res,
           Response.success_msg.bookingCancel,
