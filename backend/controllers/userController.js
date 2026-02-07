@@ -1246,7 +1246,12 @@ module.exports = {
             ],
           },
           where: {
-            status: 0, // ⏳ pending bookings only
+            status: {
+              [Op.and]: [
+                0,                 // ⏳ pending bookings only
+                { [Op.not]: 2 },   // ❌ not cancelled/rejected status
+              ],
+            },
             driverId: null, // not accepted by any driver
             paymentStatus: 1,
             // ❌ Exclude rejected by this driver
