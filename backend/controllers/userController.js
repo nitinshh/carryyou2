@@ -1226,7 +1226,9 @@ module.exports = {
         }
 
         const { latitude, longitude } = driver;
-
+        console.log("latitude,",latitude)
+        console.log("longitude",longitude)
+        // return
         // 2️⃣ Find nearby bookings (10 KM)
         response = await Models.bookingModel.findAll({
           attributes: {
@@ -1246,12 +1248,7 @@ module.exports = {
             ],
           },
           where: {
-            status: {
-              [Op.and]: [
-                0,                 // ⏳ pending bookings only
-                { [Op.not]: 2 },   // ❌ not cancelled/rejected status
-              ],
-            },
+            status: 0, // ⏳ pending bookings only
             driverId: null, // not accepted by any driver
             paymentStatus: 1,
             // ❌ Exclude rejected by this driver
@@ -1471,7 +1468,7 @@ module.exports = {
         );
       } else if (req.body.status == 2) {
         await Models.bookingModel.update(
-          { status: 1 },
+          { status: 0 },
           { where: { id: req.body.bookingId } },
         );
         let objToSave = {

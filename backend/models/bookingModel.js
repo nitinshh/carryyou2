@@ -58,7 +58,7 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
       status: {
         type: DataTypes.INTEGER,
         allowNull: true,
-        defaultValue: 0, // 0 = pending, 1 = accepted, 2 = inProgress, 3 = completed, 4 = cancelled
+        defaultValue: 0,
        // 1 for accpet 2 for reject 3 for cancel by user
       // 4 for start 5 for i am here 6 complete(in this 4 digit pin in this user will share pin with driver)
       //  7 for cancel by driver 8 for compelet by user 9 for ongoing
