@@ -1282,19 +1282,19 @@ module.exports = {
             },
           ],
         });
-        let acceptedBooking = await Models.bookingModel.findAll({
-          where: {
-            driverId: req.user.id,
-            status: {
-              [Op.notIn]: [1,2,3,7], // exclude status 1 and 2
-            },
-          },
-        });
-        if (acceptedBooking && acceptedBooking.length > 0) {
-          acceptedBooking.forEach((item) => {
-            response.push(item);
-          });
-        }
+        // let acceptedBooking = await Models.bookingModel.findAll({
+        //   where: {
+        //     driverId: req.user.id,
+        //     status: {
+        //       [Op.notIn]: [1,2,3,7], // exclude status 1 and 2
+        //     },
+        //   },
+        // });
+        // if (acceptedBooking && acceptedBooking.length > 0) {
+        //   acceptedBooking.forEach((item) => {
+        //     response.push(item);
+        //   });
+        // }
       }
 
       return commonHelper.success(
