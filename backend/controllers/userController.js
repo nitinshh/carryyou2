@@ -1286,7 +1286,7 @@ module.exports = {
           where: {
             driverId: req.user.id,
             status: {
-              [Op.notIn]: [1], // exclude status 1 and 2
+              [Op.notIn]: [1,2,3,7], // exclude status 1 and 2
             },
           },
         });
