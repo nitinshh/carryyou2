@@ -1253,17 +1253,13 @@ module.exports = {
             paymentStatus: 1,
             // 👇 schedule logic here
             [Op.or]: [
-              // 🔹 Instant bookings: always show
               { scheduleType: 1 },
 
-              // 🔹 Scheduled bookings: show only within 30 min before booking time or after
               Sequelize.literal(`
-          scheduleType = 2
-          AND TIMESTAMP(bookingDate, bookingTime) >= '${before30Min
-            .toISOString()
-            .slice(0, 19)
-            .replace("T", " ")}'
-        `),
+                scheduleType = 2
+                AND CONVERT_TZ(NOW(), '+00:00', '+05:30')
+                  >= TIMESTAMP(bookingDate, bookingTime) - INTERVAL 30 MINUTE
+              `),
             ],
             // ❌ Exclude rejected by this driver
             id: {
