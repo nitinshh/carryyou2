@@ -13,11 +13,11 @@ const crypto = require("crypto");
 const Response = require("../config/responses.js");
 const { error } = require("console");
 
-Models.bookingModel.belongsTo(Models.userModel,{foreignKey:"userId",as:"user"})
-Models.bookingModel.belongsTo(Models.userModel,{foreignKey:"driverId",as:"driver"})
-Models.bookingModel.belongsTo(Models.typeOfVechicleModel,{foreignKey:"typeOfVehicleId"})
-Models.ratingModel.belongsTo(Models.userModel,{foreignKey:"userId",as:"user"})
-Models.ratingModel.belongsTo(Models.userModel,{foreignKey:"driverId",as:"driver"})
+Models.bookingModel.belongsTo(Models.userModel, { foreignKey: "userId", as: "user" })
+Models.bookingModel.belongsTo(Models.userModel, { foreignKey: "driverId", as: "driver" })
+Models.bookingModel.belongsTo(Models.typeOfVechicleModel, { foreignKey: "typeOfVehicleId" })
+Models.ratingModel.belongsTo(Models.userModel, { foreignKey: "userId", as: "user" })
+Models.ratingModel.belongsTo(Models.userModel, { foreignKey: "driverId", as: "driver" })
 
 module.exports = {
   signUp: async (req, res) => {
@@ -263,6 +263,12 @@ module.exports = {
         insurancePolicyImage: insurancePolicyImage,
         insuranceExpiryDate: req.body.insuranceExpiryDate,
         vehicleNumber: req.body.vehicleNumber,
+
+
+        vehicleModel: req.body.vehicleModel,
+        vehicleColor: req.body.vehicleColor,
+        petsAllowed: Number(req.body.petsAllowed) || 0,
+        sixPlusSeats: Number(req.body.sixPlusSeats) || 0,
       };
       await Models.userModel.update(objToUpate, {
         where: {
@@ -1028,6 +1034,9 @@ module.exports = {
 
       // 3️⃣ Get vehicle types
       const vehicles = await Models.typeOfVechicleModel.findAll({
+        where: {
+          isDelete: 0,
+        },
         raw: true,
       });
 
@@ -1079,9 +1088,12 @@ module.exports = {
       const {
         pickUpLatitude,
         pickUpLongitude,
-        driverId, // optional (if direct booking)
+        driverId, // optional
+        pets = 0 // 🐶 NEW FIELD (0 = no pets, 1 = pets)
       } = req.body;
+
       const otp = Math.floor(1000 + Math.random() * 9000);
+
       // 1️⃣ Create booking
       const booking = await Models.bookingModel.create({
         userId: req.user.id,
@@ -1094,101 +1106,107 @@ module.exports = {
         amount: req.body.amount,
         distance: req.body.distance,
         typeOfVehicleId: req.body.typeOfVehicleId,
-        scheduleType: req.body.scheduleType, //1 for instant and 2 for schedule for future
+        scheduleType: req.body.scheduleType,
         bookingDate: req.body.bookingDate || null,
         bookingTime: req.body.bookingTime || null,
         paymentStatus: 0,
         otp: otp,
+        pets: Number(pets) || 0, // store for reference
       });
 
+      // 2️⃣ Create payment intent
       let userDetail = await Models.userModel.findOne({
         where: { id: req.user.id },
         raw: true,
       });
+
       const ephemeralKey = await stripe.ephemeralKeys.create(
         { customer: userDetail.customerId },
         { apiVersion: "2022-11-15" },
       );
-      // const amount = parseFloat((req.body.amount * 100).toFixed(2));
+
       const amount = parseInt(Number(req.body.amount) * 100);
 
       const paymentIntent = await stripe.paymentIntents.create({
-        amount: amount,
+        amount,
         currency: "USD",
         customer: userDetail.customerId,
-        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
-        automatic_payment_methods: {
-          enabled: true,
-        },
+        automatic_payment_methods: { enabled: true },
       });
-      let result = {
-        paymentIntent: paymentIntent,
-        ephemeralKey: ephemeralKey.secret,
-        customer: userDetail.customerId,
-        publishableKey: process.env.STRIPE_PK_KEY,
-        transactionId: paymentIntent.id,
-        bookingId: booking.id,
-      };
+
+      // 3️⃣ Save transaction
       let adminId = await Models.userModel.findOne({
-        where: {
-          role: 0,
-        },
+        where: { role: 0 },
         raw: true,
       });
-      let objToSave = {
+
+      await Models.transactionModel.create({
         senderId: req.user.id,
         receiverId: adminId.id,
         amount: req.body.amount,
         transactionId: paymentIntent.id,
         bookingId: booking.id,
-      };
-      await Models.transactionModel.create(objToSave);
-      return commonHelper.success(
-        res,
-        Response.success_msg.paymentIntent,
-        result,
-      );
+      });
 
-      // 2️⃣ Find nearby drivers (10 KM)
+      // 4️⃣ Find nearby drivers (apply PET FILTER)
+      const driverWhere = {
+        role: 2,
+        isOnline: 1,
+        socketId: { [Op.ne]: null },
+      };
+
+      // 🐶 If pets ride → only pet-friendly drivers
+      if (Number(pets) === 1) {
+        driverWhere.petsAllowed = 1;
+      }
+
       const drivers = await Models.userModel.findAll({
         attributes: [
           "id",
           "socketId",
           "latitude",
           "longitude",
+          "petsAllowed",
           [
-            Sequelize.literal(`
-            (6371 * acos(
+            Sequelize.literal(`(
+            6371 * acos(
               cos(radians(${pickUpLatitude}))
               * cos(radians(latitude))
               * cos(radians(longitude) - radians(${pickUpLongitude}))
               + sin(radians(${pickUpLatitude}))
               * sin(radians(latitude))
-            ))
-          `),
+            )
+          )`),
             "distance",
           ],
         ],
-        where: {
-          role: 2, // DRIVER ROLE
-          isOnline: 1,
-          socketId: { [Op.ne]: null },
-        },
+        where: driverWhere,
         having: Sequelize.literal("distance <= 10"),
         order: [[Sequelize.literal("distance"), "ASC"]],
         raw: true,
       });
 
-      // 3️⃣ Emit to all nearby drivers
+      // 5️⃣ Emit booking request to matched drivers
       drivers.forEach((driver) => {
         io.to(driver.socketId).emit("createBooking", booking);
       });
 
+      // 6️⃣ Send payment info back to user
+      let result = {
+        paymentIntent,
+        ephemeralKey: ephemeralKey.secret,
+        customer: userDetail.customerId,
+        publishableKey: process.env.STRIPE_PK_KEY,
+        transactionId: paymentIntent.id,
+        bookingId: booking.id,
+      };
+
       return commonHelper.success(
         res,
-        Response.success_msg.bookingCreate,
-        booking,
+        Response.success_msg.paymentIntent,
+        result
       );
+
     } catch (error) {
       console.log("createBooking error:", error);
       return commonHelper.error(
@@ -1228,7 +1246,7 @@ module.exports = {
         }
 
         const { latitude, longitude } = driver;
-          // 2️⃣ Time calculation
+        // 2️⃣ Time calculation
         const now = new Date();
         const before30Min = new Date(now.getTime() - 30 * 60 * 1000);
         // 2️⃣ Find nearby bookings (10 KM)
@@ -1281,7 +1299,7 @@ module.exports = {
               attributes: ["id", "fullName", "phoneNumber"],
             },
           ],
-          limit:1
+          limit: 1
         });
         // let acceptedBooking = await Models.bookingModel.findAll({
         //   where: {
@@ -1418,20 +1436,20 @@ module.exports = {
       );
     }
   },
-  reviewsListing:async(rew,res)=>{
-      try {
+  reviewsListing: async (rew, res) => {
+    try {
       let response = await Models.ratingModel.findAll({
-        where:{
-          driverId:req.query.driverId
+        where: {
+          driverId: req.query.driverId
         },
-        include:[
+        include: [
           {
-            model:Models.userModel,
-            as:"user"
+            model: Models.userModel,
+            as: "user"
           },
           {
-            model:Models.userModel,
-            as:"driver"
+            model: Models.userModel,
+            as: "driver"
           }
         ]
       });
@@ -1519,13 +1537,13 @@ module.exports = {
         );
       } else if (req.body.status == 3) {
         await Models.bookingModel.update(
-          { status: 3 , reason: req.body.reason},
+          { status: 3, reason: req.body.reason },
           { where: { id: req.body.bookingId } },
         );
-        let bookingDetail=await Models.bookingModel.findOne({
-          where:{
-            id:req.body.bookingId
-          },raw:true
+        let bookingDetail = await Models.bookingModel.findOne({
+          where: {
+            id: req.body.bookingId
+          }, raw: true
         })
         let response = await Models.bookingModel.findOne({
           where: {
@@ -1963,7 +1981,7 @@ module.exports = {
     }
   },
 
-  webHookFrontEnd:(io)=> async (req, res) => {
+  webHookFrontEnd: (io) => async (req, res) => {
     try {
       const paymentIntent = await stripe.paymentIntents.retrieve(
         req.body.transactionId,

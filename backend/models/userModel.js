@@ -16,10 +16,10 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: 0, // 0 = pending, 1 = approved, 2 = rejected
       },
-      isNotificationOnOff:{
-        type:DataTypes.INTEGER,
-        allowNull:true,
-        defaultValue:1
+      isNotificationOnOff: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 1
       },
 
       fullName: {
@@ -161,7 +161,7 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
       },
 
       typeOfVehicleId: {
-       type: Sequelize.UUID,
+        type: Sequelize.UUID,
         allowNull: true,
         defaultValue: null,
         references: {
@@ -220,11 +220,34 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: null,
       },
-      socketId:{
-        type:DataTypes.STRING(255),
-        allowNull:true,
-        defaultValue:null
-      }
+      socketId: {
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        defaultValue: null
+      },
+
+      vehicleModel: {
+        type: DataTypes.STRING(100),
+        allowNull: true,
+      },
+
+      vehicleColor: {
+        type: DataTypes.STRING(50),
+        allowNull: true,
+      },
+
+      petsAllowed: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0, // 0 = No pets, 1 = Pets allowed
+      },
+
+      sixPlusSeats: {
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0, // 0 = Normal, 1 = 6+ seats
+      },
+
     },
     {
       timestamps: true,
