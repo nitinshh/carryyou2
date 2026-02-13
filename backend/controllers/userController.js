@@ -1224,9 +1224,9 @@ module.exports = {
         response = await Models.bookingModel.findAll({
           where: {
             userId: req.user.id,
-             status: {
-              [Op.ne]: 3
-            }
+            //  status: {
+            //   [Op.ne]: 3
+            // }
           },
           include: [
             {
