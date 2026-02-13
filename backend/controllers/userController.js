@@ -1472,6 +1472,7 @@ module.exports = {
   },
   bookingAcceptReject: (io) => async (req, res) => {
     try {
+      console.log("reqw.bouyd",req.body)
       // 1 for accpet 2 for reject 3 for cancel by user
       if (req.body.status == 1) {
         await Models.bookingModel.update(
