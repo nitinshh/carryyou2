@@ -1083,13 +1083,148 @@ module.exports = {
     }
   },
 
+  // createBooking: (io) => async (req, res) => {
+  //   try {
+  //     const {
+  //       pickUpLatitude,
+  //       pickUpLongitude,
+  //       driverId, // optional
+  //       pets = 0 // 🐶 NEW FIELD (0 = no pets, 1 = pets)
+  //     } = req.body;
+
+  //     const otp = Math.floor(1000 + Math.random() * 9000);
+
+  //     // 1️⃣ Create booking
+  //     const booking = await Models.bookingModel.create({
+  //       userId: req.user.id,
+  //       pickUpLocation: req.body.pickUpLocation,
+  //       pickUpLatitude,
+  //       pickUpLongitude,
+  //       destinationLocation: req.body.destinationLocation,
+  //       destinationLatitude: req.body.destinationLatitude,
+  //       destinationLongitude: req.body.destinationLongitude,
+  //       amount: req.body.amount,
+  //       distance: req.body.distance,
+  //       typeOfVehicleId: req.body.typeOfVehicleId,
+  //       scheduleType: req.body.scheduleType,
+  //       bookingDate: req.body.bookingDate || null,
+  //       bookingTime: req.body.bookingTime || null,
+  //       paymentStatus: 0,
+  //       otp: otp,
+  //       pets: Number(pets) || 0, // store for reference
+  //     });
+
+  //     // 2️⃣ Create payment intent
+  //     let userDetail = await Models.userModel.findOne({
+  //       where: { id: req.user.id },
+  //       raw: true,
+  //     });
+
+  //     const ephemeralKey = await stripe.ephemeralKeys.create(
+  //       { customer: userDetail.customerId },
+  //       { apiVersion: "2022-11-15" },
+  //     );
+
+  //     const amount = parseInt(Number(req.body.amount) * 100);
+
+  //     const paymentIntent = await stripe.paymentIntents.create({
+  //       amount,
+  //       currency: "USD",
+  //       customer: userDetail.customerId,
+  //       automatic_payment_methods: { enabled: true },
+  //     });
+
+  //     // 3️⃣ Save transaction
+  //     let adminId = await Models.userModel.findOne({
+  //       where: { role: 0 },
+  //       raw: true,
+  //     });
+
+  //     await Models.transactionModel.create({
+  //       senderId: req.user.id,
+  //       receiverId: adminId.id,
+  //       amount: req.body.amount,
+  //       transactionId: paymentIntent.id,
+  //       bookingId: booking.id,
+  //     });
+
+  //     // 4️⃣ Find nearby drivers (apply PET FILTER)
+  //     const driverWhere = {
+  //       role: 2,
+  //       isOnline: 1,
+  //       socketId: { [Op.ne]: null },
+  //     };
+
+  //     // 🐶 If pets ride → only pet-friendly drivers
+  //     if (Number(pets) === 1) {
+  //       driverWhere.petsAllowed = 1;
+  //     }
+
+  //     const drivers = await Models.userModel.findAll({
+  //       attributes: [
+  //         "id",
+  //         "socketId",
+  //         "latitude",
+  //         "longitude",
+  //         "petsAllowed",
+  //         [
+  //           Sequelize.literal(`(
+  //           6371 * acos(
+  //             cos(radians(${pickUpLatitude}))
+  //             * cos(radians(latitude))
+  //             * cos(radians(longitude) - radians(${pickUpLongitude}))
+  //             + sin(radians(${pickUpLatitude}))
+  //             * sin(radians(latitude))
+  //           )
+  //         )`),
+  //           "distance",
+  //         ],
+  //       ],
+  //       where: driverWhere,
+  //       having: Sequelize.literal("distance <= 10"),
+  //       order: [[Sequelize.literal("distance"), "ASC"]],
+  //       raw: true,
+  //     });
+
+  //     // 5️⃣ Emit booking request to matched drivers
+  //     drivers.forEach((driver) => {
+  //       io.to(driver.socketId).emit("createBooking", booking);
+  //     });
+
+  //     // 6️⃣ Send payment info back to user
+  //     let result = {
+  //       paymentIntent,
+  //       ephemeralKey: ephemeralKey.secret,
+  //       customer: userDetail.customerId,
+  //       publishableKey: process.env.STRIPE_PK_KEY,
+  //       transactionId: paymentIntent.id,
+  //       bookingId: booking.id,
+  //     };
+
+  //     return commonHelper.success(
+  //       res,
+  //       Response.success_msg.paymentIntent,
+  //       result
+  //     );
+
+  //   } catch (error) {
+  //     console.log("createBooking error:", error);
+  //     return commonHelper.error(
+  //       res,
+  //       Response.error_msg.intSerErr,
+  //       error.message,
+  //     );
+  //   }
+  // },
+
+
   createBooking: (io) => async (req, res) => {
     try {
       const {
         pickUpLatitude,
         pickUpLongitude,
-        driverId, // optional
-        pets = 0 // 🐶 NEW FIELD (0 = no pets, 1 = pets)
+        driverId,
+        pets = 0
       } = req.body;
 
       const otp = Math.floor(1000 + Math.random() * 9000);
@@ -1111,7 +1246,7 @@ module.exports = {
         bookingTime: req.body.bookingTime || null,
         paymentStatus: 0,
         otp: otp,
-        pets: Number(pets) || 0, // store for reference
+        pets: Number(pets) || 0,
       });
 
       // 2️⃣ Create payment intent
@@ -1148,14 +1283,14 @@ module.exports = {
         bookingId: booking.id,
       });
 
-      // 4️⃣ Find nearby drivers (apply PET FILTER)
+      // 4️⃣ Find nearby drivers (PET FILTER)
       const driverWhere = {
         role: 2,
         isOnline: 1,
         socketId: { [Op.ne]: null },
       };
 
-      // 🐶 If pets ride → only pet-friendly drivers
+      // pet ride → only pet drivers
       if (Number(pets) === 1) {
         driverWhere.petsAllowed = 1;
       }
@@ -1181,17 +1316,23 @@ module.exports = {
           ],
         ],
         where: driverWhere,
-        having: Sequelize.literal("distance <= 10"),
+        having: Sequelize.literal("distance <= 16"), // 10 miles ≈ 16 km
         order: [[Sequelize.literal("distance"), "ASC"]],
         raw: true,
       });
 
-      // 5️⃣ Emit booking request to matched drivers
-      drivers.forEach((driver) => {
-        io.to(driver.socketId).emit("createBooking", booking);
-      });
+      // 5️⃣ Send request ONLY to nearest driver
+      if (drivers.length > 0) {
+        const nearestDriver = drivers[0];
 
-      // 6️⃣ Send payment info back to user
+        io.to(nearestDriver.socketId).emit("createBooking", booking);
+
+        console.log("Booking sent to driver:", nearestDriver.id);
+      } else {
+        console.log("No drivers available");
+      }
+
+      // 6️⃣ Send payment info to user
       let result = {
         paymentIntent,
         ephemeralKey: ephemeralKey.secret,
@@ -1216,6 +1357,7 @@ module.exports = {
       );
     }
   },
+
 
   bookingList: async (req, res) => {
     try {
@@ -1470,116 +1612,285 @@ module.exports = {
       );
     }
   },
+  // bookingAcceptReject: (io) => async (req, res) => {
+  //   try {
+  //     console.log("reqw.bouyd", req.body)
+  //     // 1 for accpet 2 for reject 3 for cancel by user
+  //     if (req.body.status == 1) {
+  //       await Models.bookingModel.update(
+  //         { status: 1, driverId: req.user.id },
+  //         { where: { id: req.body.bookingId } },
+  //       );
+  //       let response = await Models.bookingModel.findOne({
+  //         where: {
+  //           id: req.body.bookingId,
+  //         },
+  //         include: [
+  //           {
+  //             model: Models.userModel,
+  //             as: "user",
+  //           },
+  //           {
+  //             model: Models.userModel,
+  //             as: "driver",
+  //           },
+  //         ],
+  //       });
+  //       let userDetail = await Models.userModel.findOne({
+  //         where: { id: response.userId },
+  //         raw: true,
+  //       });
+  //       io.to(userDetail.socketId).emit("bookingAcceptReject", response);
+  //       return commonHelper.success(
+  //         res,
+  //         Response.success_msg.bookingAccept,
+  //         response,
+  //       );
+  //     } else if (req.body.status == 2) {
+  //       await Models.bookingModel.update(
+  //         { status: 0 },
+  //         { where: { id: req.body.bookingId } },
+  //       );
+  //       let objToSave = {
+  //         driverId: req.user.id,
+  //         bookingId: req.body.bookingId,
+  //       };
+  //       await Models.bookingRejectedByModel.create(objToSave);
+  //       let response = await Models.bookingModel.findOne({
+  //         where: {
+  //           id: req.body.bookingId,
+  //         },
+  //         include: [
+  //           {
+  //             model: Models.userModel,
+  //             as: "user",
+  //           },
+  //           {
+  //             model: Models.userModel,
+  //             as: "driver",
+  //           },
+  //         ],
+  //       });
+  //       let userDetail = await Models.userModel.findOne({
+  //         where: { id: response.userId },
+  //         raw: true,
+  //       });
+  //       io.to(userDetail.socketId).emit("bookingAcceptReject", response);
+  //       return commonHelper.success(
+  //         res,
+  //         Response.success_msg.bookingReject,
+  //         response,
+  //       );
+  //     } else if (req.body.status == 3) {
+  //       await Models.bookingModel.update(
+  //         { status: 3, reason: req.body.reason },
+  //         { where: { id: req.body.bookingId } },
+  //       );
+  //       let bookingDetail = await Models.bookingModel.findOne({
+  //         where: {
+  //           id: req.body.bookingId
+  //         }, raw: true
+  //       })
+  //       let response = await Models.bookingModel.findOne({
+  //         where: {
+  //           id: req.body.bookingId,
+  //         },
+  //         include: [
+  //           {
+  //             model: Models.userModel,
+  //             as: "user",
+  //           },
+  //           {
+  //             model: Models.userModel,
+  //             as: "driver",
+  //           },
+  //         ],
+  //       });
+
+  //       if (bookingDetail && bookingDetail.driverId) {
+  //         let userDetail = await Models.userModel.findOne({
+  //           where: { id: response.driverId },
+  //           raw: true,
+  //         });
+  //         io.to(userDetail.socketId).emit("cancelBooking", response);
+  //       }
+  //       return commonHelper.success(
+  //         res,
+  //         Response.success_msg.bookingCancel,
+  //         response,
+  //       );
+  //     }
+  //   } catch (error) {
+  //     console.log("error", error);
+  //     return commonHelper.error(
+  //       res,
+  //       Response.error_msg.intSerErr,
+  //       error.message,
+  //     );
+  //   }
+  // },
+
   bookingAcceptReject: (io) => async (req, res) => {
     try {
-      console.log("reqw.bouyd", req.body)
-      // 1 for accpet 2 for reject 3 for cancel by user
+      console.log("req.body", req.body);
+
+      // 1 = accept
+      // 2 = reject
+      // 3 = cancel by user
+
       if (req.body.status == 1) {
+
         await Models.bookingModel.update(
           { status: 1, driverId: req.user.id },
           { where: { id: req.body.bookingId } },
         );
+
         let response = await Models.bookingModel.findOne({
-          where: {
-            id: req.body.bookingId,
-          },
+          where: { id: req.body.bookingId },
           include: [
-            {
-              model: Models.userModel,
-              as: "user",
-            },
-            {
-              model: Models.userModel,
-              as: "driver",
-            },
+            { model: Models.userModel, as: "user" },
+            { model: Models.userModel, as: "driver" },
           ],
         });
+
         let userDetail = await Models.userModel.findOne({
           where: { id: response.userId },
           raw: true,
         });
+
         io.to(userDetail.socketId).emit("bookingAcceptReject", response);
+
         return commonHelper.success(
           res,
           Response.success_msg.bookingAccept,
           response,
         );
+
       } else if (req.body.status == 2) {
+
+        // driver rejected
         await Models.bookingModel.update(
           { status: 0 },
           { where: { id: req.body.bookingId } },
         );
-        let objToSave = {
+
+        // save rejected driver
+        await Models.bookingRejectedByModel.create({
           driverId: req.user.id,
           bookingId: req.body.bookingId,
-        };
-        await Models.bookingRejectedByModel.create(objToSave);
-        let response = await Models.bookingModel.findOne({
-          where: {
-            id: req.body.bookingId,
-          },
-          include: [
-            {
-              model: Models.userModel,
-              as: "user",
-            },
-            {
-              model: Models.userModel,
-              as: "driver",
-            },
-          ],
         });
-        let userDetail = await Models.userModel.findOne({
-          where: { id: response.userId },
+
+        let bookingDetail = await Models.bookingModel.findOne({
+          where: { id: req.body.bookingId },
           raw: true,
         });
-        io.to(userDetail.socketId).emit("bookingAcceptReject", response);
+
+        // get rejected drivers
+        let rejectedDrivers = await Models.bookingRejectedByModel.findAll({
+          where: { bookingId: req.body.bookingId },
+          attributes: ["driverId"],
+          raw: true,
+        });
+
+        const rejectedIds = rejectedDrivers.map(d => d.driverId);
+
+        // find next nearest driver
+        const drivers = await Models.userModel.findAll({
+          attributes: [
+            "id",
+            "socketId",
+            "latitude",
+            "longitude",
+            [
+              Sequelize.literal(`(
+              6371 * acos(
+                cos(radians(${bookingDetail.pickUpLatitude}))
+                * cos(radians(latitude))
+                * cos(radians(longitude) - radians(${bookingDetail.pickUpLongitude}))
+                + sin(radians(${bookingDetail.pickUpLatitude}))
+                * sin(radians(latitude))
+              )
+            )`),
+              "distance",
+            ],
+          ],
+          where: {
+            role: 2,
+            isOnline: 1,
+            socketId: { [Op.ne]: null },
+            id: { [Op.notIn]: rejectedIds },
+            ...(bookingDetail.pets == 1 ? { petsAllowed: 1 } : {}),
+          },
+          having: Sequelize.literal("distance <= 16"),
+          order: [[Sequelize.literal("distance"), "ASC"]],
+          raw: true,
+        });
+
+        // send to next driver
+        if (drivers.length > 0) {
+          const nextDriver = drivers[0];
+
+          io.to(nextDriver.socketId).emit("createBooking", bookingDetail);
+
+          console.log("Sent to next driver:", nextDriver.id);
+        } else {
+          console.log("No more drivers available");
+        }
+
+        let response = await Models.bookingModel.findOne({
+          where: { id: req.body.bookingId },
+          include: [
+            { model: Models.userModel, as: "user" },
+            { model: Models.userModel, as: "driver" },
+          ],
+        });
+
         return commonHelper.success(
           res,
           Response.success_msg.bookingReject,
           response,
         );
+
       } else if (req.body.status == 3) {
+
         await Models.bookingModel.update(
           { status: 3, reason: req.body.reason },
           { where: { id: req.body.bookingId } },
         );
+
         let bookingDetail = await Models.bookingModel.findOne({
-          where: {
-            id: req.body.bookingId
-          }, raw: true
-        })
+          where: { id: req.body.bookingId },
+          raw: true,
+        });
+
         let response = await Models.bookingModel.findOne({
-          where: {
-            id: req.body.bookingId,
-          },
+          where: { id: req.body.bookingId },
           include: [
-            {
-              model: Models.userModel,
-              as: "user",
-            },
-            {
-              model: Models.userModel,
-              as: "driver",
-            },
+            { model: Models.userModel, as: "user" },
+            { model: Models.userModel, as: "driver" },
           ],
         });
 
+        // notify driver
         if (bookingDetail && bookingDetail.driverId) {
-          let userDetail = await Models.userModel.findOne({
+          let driverDetail = await Models.userModel.findOne({
             where: { id: response.driverId },
             raw: true,
           });
-          io.to(userDetail.socketId).emit("cancelBooking", response);
+
+          io.to(driverDetail.socketId).emit("cancelBooking", response);
         }
+
         return commonHelper.success(
           res,
           Response.success_msg.bookingCancel,
           response,
         );
       }
+
     } catch (error) {
       console.log("error", error);
+
       return commonHelper.error(
         res,
         Response.error_msg.intSerErr,
@@ -1587,6 +1898,7 @@ module.exports = {
       );
     }
   },
+
 
   bookingStatusChange: (io) => async (req, res) => {
     try {
