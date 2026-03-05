@@ -1472,7 +1472,7 @@ module.exports = {
   },
   bookingAcceptReject: (io) => async (req, res) => {
     try {
-      console.log("reqw.bouyd",req.body)
+      console.log("reqw.bouyd", req.body)
       // 1 for accpet 2 for reject 3 for cancel by user
       if (req.body.status == 1) {
         await Models.bookingModel.update(
@@ -2013,7 +2013,17 @@ module.exports = {
           where: { id: transactionDetail.bookingId },
           raw: true,
         });
-        // 2️⃣ Find nearby drivers (10 KM)
+
+        const driverWhere = {
+          role: 2,
+          isOnline: 1,
+          socketId: { [Op.ne]: null },
+        };
+
+        if (Number(bookingDetail.pets) === 1) {
+          driverWhere.petsAllowed = 1;
+        }
+
         const drivers = await Models.userModel.findAll({
           attributes: [
             "id",
@@ -2033,11 +2043,7 @@ module.exports = {
               "distance",
             ],
           ],
-          where: {
-            role: 2, // DRIVER ROLE
-            isOnline: 1,
-            socketId: { [Op.ne]: null },
-          },
+          where: driverWhere,
           having: Sequelize.literal("distance <= 100"),
           order: [[Sequelize.literal("distance"), "ASC"]],
           raw: true,
