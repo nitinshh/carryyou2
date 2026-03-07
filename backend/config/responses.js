@@ -33,7 +33,12 @@ var success_msg = {
   bookingComplete:"Booking complete successfully",
   bookingCompleteByUser:"Booking complete status change by user",
   bookingOnGoing:"Booking on going",
-  ratingDone:"Rating give successfully"
+  ratingDone:"Rating give successfully",
+  lostItemRequestSubmit:"Lost item request submit successfully",
+  lostItemRequestSubmitToAdmin:"Request send to admin successfully",
+  driverFoundItemConfimByUser:"Driver found item confirm by user successfully",
+  driverHaveItemConfimByDriver:"Driver have item confirm by driver successfully",
+  getLostItemRequest:"Get lost item request successfully",
 };
 
 var failed_msg = {

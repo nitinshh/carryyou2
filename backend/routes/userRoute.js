@@ -92,7 +92,13 @@ module.exports = function (io) {
   );
   router.post("/stripeWebhook", controller.userController.stripeWebhook(io));
 
-  
+  router.post("/submitLostItemRequestDriver",authentication,controller.userController.submitLostItemRequestDriver)
+  router.post("/sendRequestToAdminByUser",authentication,controller.userController.sendRequestToAdminByUser)
+  router.post("/driverFoundItemConfimByUser",authentication,controller.userController.driverFoundItemConfimByUser)
+  router.post("/driverHaveItemConfimByDriver",authentication,controller.userController.driverHaveItemConfimByDriver)
+  router.get("/getLostItemRequest",authentication,controller.userController.getLostItemRequest)
+  router.post("/payAmountStripeForLostItem",authentication,controller.userController.payAmountStripeForLostItem(io))
+  router.post("/webHookFrontEndLostItem",authentication,controller.userController.webHookFrontEndLostItem(io))
   return router
 }
 

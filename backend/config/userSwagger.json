@@ -1306,7 +1306,7 @@
           }
         ],
         "parameters": [
-           {
+          {
             "name": "bookingId",
             "in": "formData",
             "description": "Enter the bookingId",
@@ -1319,11 +1319,11 @@
             "in": "formData",
             "description": "Enter the status",
             "required": true,
-            "enum":[4,5,6,7,8,9],
+            "enum": [4, 5, 6, 7, 8, 9],
             "type": "number",
             "value": ""
           },
-           {
+          {
             "name": "otp",
             "in": "formData",
             "description": "Enter the opt when status send 6",
@@ -1386,11 +1386,11 @@
             "in": "query",
             "description": "Enter the status",
             "required": true,
-            "enum":[0,1,2],
+            "enum": [0, 1, 2],
             "type": "number",
             "value": ""
           },
-           {
+          {
             "name": "limit",
             "in": "query",
             "description": "Enter the limit",
@@ -1398,7 +1398,7 @@
             "type": "number",
             "value": ""
           },
-           {
+          {
             "name": "skip",
             "in": "query",
             "description": "Enter the skip",
@@ -1415,7 +1415,7 @@
         }
       }
     },
-     "/users/reviewsListing": {
+    "/users/reviewsListing": {
       "get": {
         "x-swagger-router-controller": "middleware-name1",
         "operationId": "users-reviewsListing-post",
@@ -1427,7 +1427,7 @@
           }
         ],
         "parameters": [
-           {
+          {
             "name": "driverId",
             "in": "query",
             "description": "Enter the driverId",
@@ -1521,7 +1521,250 @@
           "500": { "description": "Internal server error" }
         }
       }
-    }
+    },
+    "/users/submitLostItemRequestDriver": {
+      "post": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-submitLostItemRequestDriver-post",
+        "tags": ["Application User Lost Item"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "bookingId",
+            "in": "formData",
+            "description": "Enter the bookingId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "driverId",
+            "in": "formData",
+            "description": "Enter the driverId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "description",
+            "in": "formData",
+            "description": "Enter the description of lost item",
+            "required": true,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "countryCode",
+            "in": "formData",
+            "description": "Enter the countryCode",
+            "required": true,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "phoneNumber",
+            "in": "formData",
+            "description": "Enter the phoneNumber",
+            "required": true,
+            "type": "string",
+            "value": ""
+          }          
+        ],
+        "responses": {
+          "200": { "description": "Submit lost of item request driver successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/sendRequestToAdminByUser": {
+      "post": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-sendRequestToAdminByUser-post",
+        "tags": ["Application User Lost Item"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lostItemId",
+            "in": "formData",
+            "description": "Enter the lostItemId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/driverFoundItemConfimByUser": {
+      "post": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-driverFoundItemConfimByUser-post",
+        "tags": ["Application User Lost Item"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lostItemId",
+            "in": "formData",
+            "description": "Enter the lostItemId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/driverHaveItemConfimByDriver": {
+      "post": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-driverHaveItemConfimByDriver-post",
+        "tags": ["Application User Lost Item"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lostItemId",
+            "in": "formData",
+            "description": "Enter the lostItemId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/getLostItemRequest": {
+      "get": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-getLostItemRequest-get",
+        "tags": ["Application User Lost Item"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/payAmountStripeForLostItem": {
+      "post": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-payAmountStripeForLostItem-post",
+        "tags": ["Application User Lost Item"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "bookingId",
+            "in": "formData",
+            "description": "Enter the bookingId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "amount",
+            "in": "formData",
+            "description": "Enter the amount",
+            "required": true,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "lostItemId",
+            "in": "formData",
+            "description": "Enter the lostItemId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/webHookFrontEndLostItem": {
+      "post": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-transactionId-post",
+        "tags": ["Application User Lost Item"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "transactionId",
+            "in": "formData",
+            "description": "Enter the transactionId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Frontend webhook lost item successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    }           
   },
   "definitions": {}
 }

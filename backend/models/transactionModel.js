@@ -64,6 +64,7 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         allowNull: true,
         defaultValue: 0, // 0 = pending 1 = success
       },
+      
     },
     {
       timestamps: true,

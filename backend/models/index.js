@@ -13,5 +13,6 @@ module.exports = {
   chatConstantModel:require("./chatConstantModel")(Sequelize, sequelize, Sequelize.DataTypes),
   messageModel:require("./messageModel")(Sequelize, sequelize, Sequelize.DataTypes),
   ratingModel:require("./ratingModel")(Sequelize, sequelize, Sequelize.DataTypes),
+  loastItemModel:require("./lostItemModel")(Sequelize, sequelize, Sequelize.DataTypes),
 
 };

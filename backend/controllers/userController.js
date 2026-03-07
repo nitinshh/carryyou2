@@ -18,7 +18,8 @@ Models.bookingModel.belongsTo(Models.userModel, { foreignKey: "driverId", as: "d
 Models.bookingModel.belongsTo(Models.typeOfVechicleModel, { foreignKey: "typeOfVehicleId" })
 Models.ratingModel.belongsTo(Models.userModel, { foreignKey: "userId", as: "user" })
 Models.ratingModel.belongsTo(Models.userModel, { foreignKey: "driverId", as: "driver" })
-
+Models.loastItemModel.belongsTo(Models.bookingModel, { foreignKey: "bookingId" })
+Models.loastItemModel.belongsTo(Models.userModel, { foreignKey: "userId" })
 module.exports = {
   signUp: async (req, res) => {
     try {
@@ -2474,4 +2475,250 @@ module.exports = {
       return res.status(500).send("Webhook error");
     }
   },
+  submitLostItemRequestDriver:async(req,res)=>{
+    try {
+      let objToSave = {
+        bookingId:req.body.bookingId,
+        userId:req.user.id,
+        driverId:req.body.driverId,
+        description:req.body.description,
+        countryCode:req.body.countryCode,
+        phoneNumber:req.body.phoneNumber,
+      }
+      let response = await Models.loastItemModel.create(objToSave);
+      return commonHelper.success(
+        res,
+        Response.success_msg.lostItemRequestSubmit,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );
+    }
+  },
+  sendRequestToAdminByUser:async(req,res)=>{
+    try {
+      let objToUpdate = {
+        sendToAdminOrNot:1,
+      }
+      await Models.loastItemModel.update(objToUpdate,{
+        where:{
+          id:req.body.lostItemId,
+        }
+      });
+      let response = await Models.loastItemModel.findOne({
+        where:{
+          id:req.body.lostItemId,
+        }      
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.lostItemRequestSubmitToAdmin,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );      
+    }
+  },
+  driverFoundItemConfimByUser:async(req,res)=>{
+    try {
+      await Models.loastItemModel.update({
+        userConfirm:1,
+      },{
+        where:{
+          id:req.body.lostItemId,
+        }
+      });
+      let response = await Models.loastItemModel.findOne({
+        where:{
+          id:req.body.lostItemId,
+        }      
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.driverFoundItemConfimByUser,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );     
+    }
+  },
+  driverHaveItemConfimByDriver:async(req,res)=>{
+    try {
+      await Models.loastItemModel.update({
+        driverConfirm:1,
+      },{
+        where:{
+          id:req.body.lostItemId,
+        }
+      });
+      let response = await Models.loastItemModel.findOne({
+        where:{
+          id:req.body.lostItemId,
+        }      
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.driverHaveItemConfimByDriver,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );      
+    }
+  },
+  getLostItemRequest:async(req,res)=>{
+    try {
+      let response=await Models.loastItemModel.findAll({
+        where:{
+          driverId:req.user.id,
+        },
+        include:[
+          {
+            model:Models.bookingModel,
+          },
+          {
+            model:Models.userModel,
+          }
+        ]
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.getLostItemRequest,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );      
+    }
+  },
+  payAmountStripeForLostItem:(io)=>async(req,res)=>{
+    try {
+      let userDetail = await Models.userModel.findOne({
+        where: { id: req.user.id },
+        raw: true,
+      });
+      let adminId = await Models.userModel.findOne({
+        where: {
+          role: 0,
+        },
+        raw: true,
+      });
+      const ephemeralKey = await stripe.ephemeralKeys.create(
+        { customer: userDetail.customerId },
+        { apiVersion: "2022-11-15" },
+      );
+      const amount = parseFloat((req.body.amount * 100).toFixed(2));
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amount,
+        currency: "USD",
+        customer: userDetail.customerId,
+        // In the latest version of the API, specifying the `automatic_payment_methods` parameter is optional because Stripe enables its functionality by default.
+        automatic_payment_methods: {
+          enabled: true,
+        },
+      });
+      let result = {
+        paymentIntent: paymentIntent,
+        ephemeralKey: ephemeralKey.secret,
+        customer: userDetail.customerId,
+        publishableKey: process.env.STRIPE_PK_KEY,
+        transactionId: paymentIntent.id,
+      };
+      await Models.loastItemModel.update(
+        { amount: req.body.amount },
+        { where: { id: req.body.lostItemId } },
+      );
+      await Models.transactionModel.create({
+        senderId: req.user.id,
+        receiverId: adminId.id,
+        amount: req.body.amount,
+        transactionId: paymentIntent.id,
+        bookingId: req.body.bookingId,
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.payAmountStripeForLostItem,
+        result
+      );
+    } catch (error) {      
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );      
+    }
+  },
+  webHookFrontEndLostItem: (io) => async (req, res) => {
+    try {
+      const paymentIntent = await stripe.paymentIntents.retrieve(
+        req.body.transactionId,
+      );
+      let transactionDetail = await Models.transactionModel.findOne({
+        where: { transactionId: req.body.transactionId },
+        raw: true,
+      });
+      if (paymentIntent.status === "succeeded") {
+        await Models.transactionModel.update(
+          {
+            paymentStatus: 1,
+          },
+          {
+            where: {
+              transactionId: req.body.transactionId,
+            },
+          },
+        );
+        await Models.loastItemModel.update(
+          { paymentStatus: 1 },
+          { where: { bookingId: transactionDetail.bookingId } },
+        );
+        let lostItemDetail = await Models.loastItemModel.findOne({
+          where: { bookingId: transactionDetail.bookingId },
+          raw: true,
+        });
+        let driverDetail=await Models.userModel.findOne({
+          where:{
+            id:lostItemDetail.driverId
+          },raw:true
+        })
+        io.to(driverDetail.socketId).emit("paymentLostItem", lostItemDetail);
+      }
+      return commonHelper.success(
+        res,
+        Response.success_msg.stripeWebHookFrontEnd,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );
+    }
+  },
+
 };

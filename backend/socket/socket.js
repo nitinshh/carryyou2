@@ -529,7 +529,7 @@ module.exports = function (io) {
               },
             }
           );
-          console.log("updatedata", updatedata);
+          // console.log("updatedata", updatedata);
 
           // Retrieve the message and sender/receiver information
           const getMsg = await Models.messageModel.findOne({
@@ -870,6 +870,30 @@ module.exports = function (io) {
         throw error;
       }
     }); 
+    socket.on("startNavigation",async(data)=>{
+      try {
+        await Models.loastItemModel.update({
+          startNavigationStatus:data.startNavigationStatus
+        },{
+          where:{
+            id:data.lostItemId
+          }
+        })
+        let lostItemDetail=await Models.loastItemModel.findOne({
+          where:{
+            id:data.lostItemId
+          },raw:true
+        })
+        let userDetail=await Models.userModel.findOne({
+          where:{
+            id:lostItemDetail.userId
+          },raw:true
+        })
+        socket.to(userDetail.socketId).emit("startNavigation", lostItemDetail);
+      } catch (error) {
+        throw error
+      }
+    })
   });
 };
 
