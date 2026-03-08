@@ -93,7 +93,7 @@ module.exports = function (io) {
   router.post("/stripeWebhook", controller.userController.stripeWebhook(io));
  
   router.get("/couponCodeList",authentication,controller.userController.couponCodeList)
-
+  router.post("/applyCouponCode",authentication,controller.userController.applyCouponCode)
   router.post("/submitLostItemRequestDriver",authentication,controller.userController.submitLostItemRequestDriver)
   router.post("/sendRequestToAdminByUser",authentication,controller.userController.sendRequestToAdminByUser)
   router.post("/driverFoundItemConfimByUser",authentication,controller.userController.driverFoundItemConfimByUser)

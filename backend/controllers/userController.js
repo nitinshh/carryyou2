@@ -192,7 +192,7 @@ module.exports = {
         },
       );
       let userDetail = await Models.userModel.findOne({
-        where: { email: email,role: role },
+        where: { email: email, role: role },
         raw: true,
       });
       const token = jwt.sign(
@@ -265,7 +265,6 @@ module.exports = {
         insurancePolicyImage: insurancePolicyImage,
         insuranceExpiryDate: req.body.insuranceExpiryDate,
         vehicleNumber: req.body.vehicleNumber,
-
 
         vehicleModel: req.body.vehicleModel,
         vehicleColor: req.body.vehicleColor,
@@ -1219,15 +1218,9 @@ module.exports = {
   //   }
   // },
 
-
   createBooking: (io) => async (req, res) => {
     try {
-      const {
-        pickUpLatitude,
-        pickUpLongitude,
-        driverId,
-        pets = 0
-      } = req.body;
+      const { pickUpLatitude, pickUpLongitude, driverId, pets = 0 } = req.body;
 
       const otp = Math.floor(1000 + Math.random() * 9000);
 
@@ -1347,9 +1340,8 @@ module.exports = {
       return commonHelper.success(
         res,
         Response.success_msg.paymentIntent,
-        result
+        result,
       );
-
     } catch (error) {
       console.log("createBooking error:", error);
       return commonHelper.error(
@@ -1359,7 +1351,6 @@ module.exports = {
       );
     }
   },
-
 
   bookingList: async (req, res) => {
     try {
@@ -1446,7 +1437,7 @@ module.exports = {
               attributes: ["id", "fullName", "phoneNumber"],
             },
           ],
-          limit: 1
+          limit: 1,
         });
         // let acceptedBooking = await Models.bookingModel.findAll({
         //   where: {
@@ -1589,18 +1580,18 @@ module.exports = {
     try {
       let response = await Models.ratingModel.findAll({
         where: {
-          driverId: req.query.driverId
+          driverId: req.query.driverId,
         },
         include: [
           {
             model: Models.userModel,
-            as: "user"
+            as: "user",
           },
           {
             model: Models.userModel,
-            as: "driver"
-          }
-        ]
+            as: "driver",
+          },
+        ],
       });
       return commonHelper.success(
         res,
@@ -1743,7 +1734,6 @@ module.exports = {
       // 3 = cancel by user
 
       if (req.body.status == 1) {
-
         await Models.bookingModel.update(
           { status: 1, driverId: req.user.id },
           { where: { id: req.body.bookingId } },
@@ -1769,9 +1759,7 @@ module.exports = {
           Response.success_msg.bookingAccept,
           response,
         );
-
       } else if (req.body.status == 2) {
-
         // driver rejected
         await Models.bookingModel.update(
           { status: 0 },
@@ -1796,7 +1784,7 @@ module.exports = {
           raw: true,
         });
 
-        const rejectedIds = rejectedDrivers.map(d => d.driverId);
+        const rejectedIds = rejectedDrivers.map((d) => d.driverId);
 
         // find next nearest driver
         const drivers = await Models.userModel.findAll({
@@ -1854,9 +1842,7 @@ module.exports = {
           Response.success_msg.bookingReject,
           response,
         );
-
       } else if (req.body.status == 3) {
-
         await Models.bookingModel.update(
           { status: 3, reason: req.body.reason },
           { where: { id: req.body.bookingId } },
@@ -1891,7 +1877,6 @@ module.exports = {
           response,
         );
       }
-
     } catch (error) {
       console.log("error", error);
 
@@ -1902,7 +1887,6 @@ module.exports = {
       );
     }
   },
-
 
   bookingStatusChange: (io) => async (req, res) => {
     try {
@@ -2478,9 +2462,23 @@ module.exports = {
       return res.status(500).send("Webhook error");
     }
   },
-  couponCodeList:async(req,res)=>{
+  couponCodeList: async (req, res) => {
     try {
-      let response=await Models.couponCodeModel.findAll()
+      const usedCoupons = await Models.couponCodeModel.findAll({
+        where: { userId: req.user.id },
+        attributes: ["couponCodeId"],
+      });
+
+      const usedCouponIds = usedCoupons.map((c) => c.couponCodeId);
+
+      // get coupons not used by this user
+      const response = await Models.couponCodeModel.findAll({
+        where: {
+          id: {
+            [Op.notIn]: usedCouponIds,
+          },
+        },
+      });
       return commonHelper.success(
         res,
         Response.success_msg.couponCodeList,
@@ -2495,16 +2493,38 @@ module.exports = {
       );
     }
   },
-  submitLostItemRequestDriver:async(req,res)=>{
+  applyCouponCode:async(req,res)=>{
+    try {
+       let objToSave = {
+        userId: req.user.id,
+        couponCodeId: req.body.couponCodeId,
+        bookingId: req.body.bookingId,
+       }
+       await Models.couponCodeModel.create(objToSave);
+        return commonHelper.success(
+        res,
+        Response.success_msg.couponCodeApply,
+        {},
+      );
+    } catch (error) {
+       console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );     
+    }
+  },
+  submitLostItemRequestDriver: async (req, res) => {
     try {
       let objToSave = {
-        bookingId:req.body.bookingId,
-        userId:req.user.id,
-        driverId:req.body.driverId,
-        description:req.body.description,
-        countryCode:req.body.countryCode,
-        phoneNumber:req.body.phoneNumber,
-      }
+        bookingId: req.body.bookingId,
+        userId: req.user.id,
+        driverId: req.body.driverId,
+        description: req.body.description,
+        countryCode: req.body.countryCode,
+        phoneNumber: req.body.phoneNumber,
+      };
       let response = await Models.loastItemModel.create(objToSave);
       return commonHelper.success(
         res,
@@ -2520,20 +2540,20 @@ module.exports = {
       );
     }
   },
-  sendRequestToAdminByUser:async(req,res)=>{
+  sendRequestToAdminByUser: async (req, res) => {
     try {
       let objToUpdate = {
-        sendToAdminOrNot:1,
-      }
-      await Models.loastItemModel.update(objToUpdate,{
-        where:{
-          id:req.body.lostItemId,
-        }
+        sendToAdminOrNot: 1,
+      };
+      await Models.loastItemModel.update(objToUpdate, {
+        where: {
+          id: req.body.lostItemId,
+        },
       });
       let response = await Models.loastItemModel.findOne({
-        where:{
-          id:req.body.lostItemId,
-        }      
+        where: {
+          id: req.body.lostItemId,
+        },
       });
       return commonHelper.success(
         res,
@@ -2546,22 +2566,25 @@ module.exports = {
         res,
         Response.error_msg.internalServerError,
         error.message,
-      );      
+      );
     }
   },
-  driverFoundItemConfimByUser:async(req,res)=>{
+  driverFoundItemConfimByUser: async (req, res) => {
     try {
-      await Models.loastItemModel.update({
-        userConfirm:1,
-      },{
-        where:{
-          id:req.body.lostItemId,
-        }
-      });
+      await Models.loastItemModel.update(
+        {
+          userConfirm: 1,
+        },
+        {
+          where: {
+            id: req.body.lostItemId,
+          },
+        },
+      );
       let response = await Models.loastItemModel.findOne({
-        where:{
-          id:req.body.lostItemId,
-        }      
+        where: {
+          id: req.body.lostItemId,
+        },
       });
       return commonHelper.success(
         res,
@@ -2574,22 +2597,25 @@ module.exports = {
         res,
         Response.error_msg.internalServerError,
         error.message,
-      );     
+      );
     }
   },
-  driverHaveItemConfimByDriver:async(req,res)=>{
+  driverHaveItemConfimByDriver: async (req, res) => {
     try {
-      await Models.loastItemModel.update({
-        driverConfirm:1,
-      },{
-        where:{
-          id:req.body.lostItemId,
-        }
-      });
+      await Models.loastItemModel.update(
+        {
+          driverConfirm: 1,
+        },
+        {
+          where: {
+            id: req.body.lostItemId,
+          },
+        },
+      );
       let response = await Models.loastItemModel.findOne({
-        where:{
-          id:req.body.lostItemId,
-        }      
+        where: {
+          id: req.body.lostItemId,
+        },
       });
       return commonHelper.success(
         res,
@@ -2602,23 +2628,23 @@ module.exports = {
         res,
         Response.error_msg.internalServerError,
         error.message,
-      );      
+      );
     }
   },
-  getLostItemRequest:async(req,res)=>{
+  getLostItemRequest: async (req, res) => {
     try {
-      let response=await Models.loastItemModel.findAll({
-        where:{
-          driverId:req.user.id,
+      let response = await Models.loastItemModel.findAll({
+        where: {
+          driverId: req.user.id,
         },
-        include:[
+        include: [
           {
-            model:Models.bookingModel,
+            model: Models.bookingModel,
           },
           {
-            model:Models.userModel,
-          }
-        ]
+            model: Models.userModel,
+          },
+        ],
       });
       return commonHelper.success(
         res,
@@ -2631,10 +2657,10 @@ module.exports = {
         res,
         Response.error_msg.internalServerError,
         error.message,
-      );      
+      );
     }
   },
-  payAmountStripeForLostItem:(io)=>async(req,res)=>{
+  payAmountStripeForLostItem: (io) => async (req, res) => {
     try {
       let userDetail = await Models.userModel.findOne({
         where: { id: req.user.id },
@@ -2681,15 +2707,15 @@ module.exports = {
       return commonHelper.success(
         res,
         Response.success_msg.payAmountStripeForLostItem,
-        result
+        result,
       );
-    } catch (error) {      
+    } catch (error) {
       console.log("error", error);
       return commonHelper.error(
         res,
         Response.error_msg.internalServerError,
         error.message,
-      );      
+      );
     }
   },
   webHookFrontEndLostItem: (io) => async (req, res) => {
@@ -2720,11 +2746,12 @@ module.exports = {
           where: { bookingId: transactionDetail.bookingId },
           raw: true,
         });
-        let driverDetail=await Models.userModel.findOne({
-          where:{
-            id:lostItemDetail.driverId
-          },raw:true
-        })
+        let driverDetail = await Models.userModel.findOne({
+          where: {
+            id: lostItemDetail.driverId,
+          },
+          raw: true,
+        });
         io.to(driverDetail.socketId).emit("paymentLostItem", lostItemDetail);
       }
       return commonHelper.success(
@@ -2740,5 +2767,4 @@ module.exports = {
       );
     }
   },
-
 };

@@ -1785,7 +1785,44 @@
           "500": { "description": "Internal server error" }
         }
       }
-    }              
+    },
+    "/users/applyCouponCode": {
+      "post": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-applyCouponCode-post",
+        "tags": ["Application User Coupon Code"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "couponCodeId",
+            "in": "formData",
+            "description": "Enter the couponCode",
+            "required": true,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "bookingId",
+            "in": "formData",
+            "description": "Enter the bookingId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Frontend webhook lost item successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    }                
   },
   "definitions": {}
 }
