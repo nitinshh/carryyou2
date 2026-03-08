@@ -192,13 +192,14 @@ module.exports = {
         },
       );
       let userDetail = await Models.userModel.findOne({
-        where: { email: email },
+        where: { email: email,role: role },
         raw: true,
       });
       const token = jwt.sign(
         {
           id: user.id,
           email: user.email,
+          role: user.role,
         },
         secretKey,
       );
