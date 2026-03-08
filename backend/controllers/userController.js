@@ -1545,7 +1545,7 @@ module.exports = {
       if (status == 0) {
         whereCondition.status = 9;
       } else if (status == 1) {
-        whereCondition.status = 0;
+        whereCondition.status = 1;
       } else {
         whereCondition.status = {
           [Op.in]: [6, 8],
