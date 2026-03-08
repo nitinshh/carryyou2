@@ -606,7 +606,6 @@ module.exports = {
       );
     }
   },
-
   getTypeOfVechileList:async(req,res)=>{
     try {
       const { page = 1, limit = 10, search = "" } = req.query;
@@ -662,7 +661,6 @@ module.exports = {
       );
     }
   },
-
   updateTypeOfVechile:async (req, res) => {
     try {
       let typeOfVechile=await Models.typeOfVechicleModel.findOne({
@@ -700,6 +698,119 @@ module.exports = {
       await Models.typeOfVechicleModel.update({isDelete:1},{where:{id:id}})
       // await typeOfVechile.destroy();
       return commonHelper.success(res, "Type of vechile delete successfully",newBanner);
+    } catch (error) {
+      console.log("Error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+
+  addCouponCode: async (req, res) => {
+    try {
+       let objToSave={
+        name:req.body.name,
+        code:req.body.code,
+        percentageOff:req.body.percentageOff
+       }
+      const newBanner = await Models.couponCodeModel.create(objToSave);
+      return commonHelper.success(res, "Coupon Code add successfully",newBanner);
+    } catch (error) {
+      console.log("Error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+  getCouponCodeList:async(req,res)=>{
+    try {
+      const { page = 1, limit = 10, search = "" } = req.query;
+      const offset = (page - 1) * limit;
+
+    const whereCondition = search
+      ? {
+          [Op.or]: [
+            {
+              name: {
+                [Op.like]: `%${search}%`,
+              },
+            },
+            {
+              percentageOff: {
+                [Op.like]: `%${search}%`,
+              },
+            },
+            {
+              code: {
+                [Op.like]: `%${search}%`,
+              },
+            },
+          ],
+        }
+      : {};
+       whereCondition.isDelete=0
+      const response = await Models.couponCodeModel.findAndCountAll({
+        where: whereCondition,
+        limit: parseInt(limit),
+        offset: parseInt(offset),
+        order: [["createdAt", "DESC"]],
+      });
+     return commonHelper.success(res, "Type of vechile list fetch successfully.",response)
+
+    } catch (error) {
+      console.log("Error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+  getDetailCouponCode:async(req,res)=>{
+      try {
+      let typeOfVechile=await Models.couponCodeModel.findOne({
+        where:{
+          id:req.params.id
+        },raw:true
+      })
+      return commonHelper.success(res, "Coupon Code get successfully",typeOfVechile);
+    } catch (error) {
+      console.log("Error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+  updateCouponCode:async (req, res) => {
+    try {
+       let objToSave={
+        name:req.body.name,
+        percentageOff:req.body.percentageOff,
+        code:req.body.code
+       }
+      const newBanner = await Models.couponCodeModel.update(objToSave,{where:{id:req.body.id}});
+      return commonHelper.success(res, "Coupon Code update successfully",newBanner);
+    } catch (error) {
+      console.log("Error:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message
+      );
+    }
+  },
+  deleteCouponCode: async (req, res) => {
+    try {
+      const { id } = req.params;
+      await Models.couponCodeModel.update({isDelete:1},{where:{id:id}})
+      // await typeOfVechile.destroy();
+      return commonHelper.success(res, "Coupon code delete successfully",newBanner);
     } catch (error) {
       console.log("Error:", error);
       return commonHelper.error(

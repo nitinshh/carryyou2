@@ -31,6 +31,13 @@ const ApiEndPoint = {
   deleteTypeOfVechile: `${API_BASE_URL}/api/deleteTypeOfVechile`,
   getDetailTypeOfVechile: `${API_BASE_URL}/api/getDetailTypeOfVechile`,
 
+
+  addCouponCode: `${API_BASE_URL}/api/addCouponCode`,
+  getCouponCodeList: `${API_BASE_URL}/api/getCouponCodeList`,
+  updateCouponCode: `${API_BASE_URL}/api/updateCouponCode`,
+  deleteCouponCode: `${API_BASE_URL}/api/deleteCouponCode`,
+  getDetailCouponCode: `${API_BASE_URL}/api/getDetailCouponCode`,
+
   // Banners Endpoints
   bannerList: `${API_BASE_URL}/api/bannerList`,
   addBanner: `${API_BASE_URL}/api/addBanner`,

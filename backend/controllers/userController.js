@@ -2475,6 +2475,23 @@ module.exports = {
       return res.status(500).send("Webhook error");
     }
   },
+  couponCodeList:async(req,res)=>{
+    try {
+      let response=await Models.couponCodeModel.findAll()
+      return commonHelper.success(
+        res,
+        Response.success_msg.couponCodeList,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );
+    }
+  },
   submitLostItemRequestDriver:async(req,res)=>{
     try {
       let objToSave = {

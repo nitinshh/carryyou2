@@ -91,6 +91,8 @@ module.exports = function (io) {
     controller.userController.stripeIntent
   );
   router.post("/stripeWebhook", controller.userController.stripeWebhook(io));
+ 
+  router.get("/couponCodeList",authentication,controller.userController.couponCodeList)
 
   router.post("/submitLostItemRequestDriver",authentication,controller.userController.submitLostItemRequestDriver)
   router.post("/sendRequestToAdminByUser",authentication,controller.userController.sendRequestToAdminByUser)

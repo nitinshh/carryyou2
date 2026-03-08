@@ -32,6 +32,13 @@ module.exports=function(){
      router.delete("/deleteTypeOfVechile/:id",controller.frontendController.deleteTypeOfVechile)
 
 
+     router.post("/addCouponCode",controller.frontendController.addCouponCode)
+     router.get("/getCouponCodeList",controller.frontendController.getCouponCodeList)
+     router.get("/getDetailCouponCode/:id",controller.frontendController.getDetailCouponCode)
+     router.put("/updateCouponCode",controller.frontendController.updateCouponCode)
+     router.delete("/deleteCouponCode/:id",controller.frontendController.deleteCouponCode)
+    
+
      router.get("/cms/:type",controller.frontendController.cms)
      router.put("/cmsUpdate",controller.frontendController.cmsUpdate)
      // router.get("/cmsCreate",controller.frontendController.cmsCreate)

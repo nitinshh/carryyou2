@@ -1764,7 +1764,28 @@
           "500": { "description": "Internal server error" }
         }
       }
-    }           
+    },
+    "/users/couponCodeList": {
+      "get": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-couponCodeList-post",
+        "tags": ["Application User Coupon Code"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "200": { "description": "Frontend webhook lost item successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    }              
   },
   "definitions": {}
 }

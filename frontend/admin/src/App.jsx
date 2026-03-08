@@ -23,6 +23,8 @@ import ContactUsView from "./pages/ContactUs/ContactUsView";
 import TypeOfVechileList from "./pages/TypeOfVechile/TypeOfVechileList"
 import TypeOfVechileAddEdit from "./pages/TypeOfVechile/TypeOfVechileAddEdit";
 import TypeOfVechileView from "./pages/TypeOfVechile/TypeOfVechileView";
+import CouponCodeList from "./pages/CouponCode/CouponCodeList";
+import CouponCodeAddEdit from "./pages/CouponCode/CouponCodeAddEdit";
 function App() {
   // const isAuthenticated = false;
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -71,6 +73,10 @@ function App() {
             <Route path="/typeOfVechile_add" element={<TypeOfVechileAddEdit />} />
             <Route path="/typeOfVechile_edit/:typeOfVechileId" element={<TypeOfVechileAddEdit />} />
             <Route path="/typeOfVechile_view/:id" element={<TypeOfVechileView />} />
+         
+            <Route path="/couponCode_listing" element={<CouponCodeList />} />
+            <Route path="/couponCode_add" element={<CouponCodeAddEdit />} />
+            <Route path="/couponCode_edit/:couponId" element={<CouponCodeAddEdit />} />
 
             <Route path="/aboutUs" element={<AboutUs />} />
             <Route path="/privacyPolicy" element={<PrivacyPolicy />} />

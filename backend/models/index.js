@@ -2,6 +2,7 @@ const Sequelize = require("sequelize");
 const sequelize = require("../dbConnection").sequelize;
 
 module.exports = {
+  couponCodeModel:require("./couponCodeModel")(Sequelize, sequelize, Sequelize.DataTypes),
   typeOfVechicleModel:require("./typeOfVehicleModel")(Sequelize, sequelize, Sequelize.DataTypes),
   userModel: require("./userModel")(Sequelize, sequelize, Sequelize.DataTypes),
   bookingModel: require("./bookingModel")(Sequelize, sequelize, Sequelize.DataTypes),
