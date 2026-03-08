@@ -1543,12 +1543,14 @@ module.exports = {
 
       // Status mapping
       if (status == 0) {
-        whereCondition.status = 9;
+        whereCondition.status = {
+          [Op.in]: [4, 5, 9], // pending(0), accepted(1), on going by driver(2), on going by user(4), arrived(5)
+        }; // on going
       } else if (status == 1) {
-        whereCondition.status = 1;
+        whereCondition.status = 1; //accepted
       } else {
         whereCondition.status = {
-          [Op.in]: [6, 8],
+          [Op.in]: [6, 8], // completed by user(6) And driver (8)
         };
       }
 
