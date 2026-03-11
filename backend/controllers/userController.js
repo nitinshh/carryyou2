@@ -2464,7 +2464,7 @@ module.exports = {
   },
   couponCodeList: async (req, res) => {
     try {
-      const usedCoupons = await Models.couponCodeModel.findAll({
+      const usedCoupons = await Models.couponCodeUsedModel.findAll({
         where: { userId: req.user.id },
         attributes: ["couponCodeId"],
       });
@@ -2498,7 +2498,7 @@ module.exports = {
        let objToSave = {
         userId: req.user.id,
         couponCodeId: req.body.couponCodeId,
-        bookingId: req.body.bookingId,
+        // bookingId: req.body.bookingId,
        }
        await Models.couponCodeModel.create(objToSave);
         return commonHelper.success(
