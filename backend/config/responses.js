@@ -40,6 +40,7 @@ var success_msg = {
   driverHaveItemConfimByDriver:"Driver have item confirm by driver successfully",
   getLostItemRequest:"Get lost item request successfully",
   couponCodeList:"Coupon Code list fatch successfully",
+  couponCodeApply:"Coupon code apply successfully",
 };
 
 var failed_msg = {
