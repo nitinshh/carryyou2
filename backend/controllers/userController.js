@@ -2505,6 +2505,15 @@ module.exports = {
         couponCodeId: couponCodeDetail.id,
         // bookingId: req.body.bookingId,
        }
+       let used=await Models.couponCodeUsedModel.findOne({
+        where: {
+          userId: req.user.id,
+          couponCodeId: couponCodeDetail.id,
+        },raw:true
+       })
+        if(used){
+          return commonHelper.failed(res, Response.failed_msg.couponCodeAlreadyUsed);
+        }
        await Models.couponCodeUsedModel.create(objToSave);
        let response = await Models.couponCodeModel.findOne({
         where: {

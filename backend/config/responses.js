@@ -55,7 +55,8 @@ var failed_msg = {
   tokReq: "Token is required!",
   invTok: "Invalid token!",
   invalidOtp: "Invalid OTP",
-  noLocationAdd:"User location not found"
+  noLocationAdd:"User location not found",
+  couponCodeAlreadyUsed:"Code already used.",
 };
 
 var error_msg = {
