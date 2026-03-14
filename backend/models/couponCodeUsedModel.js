@@ -26,17 +26,22 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         onUpdate: "CASCADE",
         onDelete: "CASCADE",
       },
-    //   bookingId: {
-    //     type: Sequelize.UUID,
-    //     allowNull: true,
-    //     defaultValue: null,
-    //     references: {
-    //       model: "bookings",
-    //       key: "id",
-    //     },
-    //     onUpdate: "CASCADE",
-    //     onDelete: "CASCADE",
-    //   }
+      bookingId: {
+        type: Sequelize.UUID,
+        allowNull: true,
+        defaultValue: null,
+        references: {
+          model: "bookings",
+          key: "id",
+        },
+        onUpdate: "CASCADE",
+        onDelete: "CASCADE",
+      },
+      isUsed:{
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0,
+      }
     },
     {
       timestamps: true,

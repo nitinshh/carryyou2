@@ -1223,7 +1223,12 @@ module.exports = {
       const { pickUpLatitude, pickUpLongitude, driverId, pets = 0 } = req.body;
 
       const otp = Math.floor(1000 + Math.random() * 9000);
-
+      let couponCodedetail=await Models.couponCodeModel.findOne({
+        where:{
+          code:req.body.couponCode
+        },raw:true
+      })
+  
       // 1️⃣ Create booking
       const booking = await Models.bookingModel.create({
         userId: req.user.id,
@@ -1244,6 +1249,15 @@ module.exports = {
         pets: Number(pets) || 0,
       });
 
+      if(couponCodedetail){
+        await Models.couponCodeUsedModel.update({
+          bookingId:booking.id
+         },{
+          where:{
+            id:couponCodedetail.id
+          }
+        })
+      }
       // 2️⃣ Create payment intent
       let userDetail = await Models.userModel.findOne({
         where: { id: req.user.id },
@@ -2309,6 +2323,10 @@ module.exports = {
           { paymentStatus: 1 },
           { where: { id: transactionDetail.bookingId } },
         );
+        await Models.couponCodeUsedModel.update(
+          { isUsed: 1 },
+          { where: { bookingId: transactionDetail.bookingId } },
+        );
         let bookingDetail = await Models.bookingModel.findOne({
           where: { id: transactionDetail.bookingId },
           raw: true,
@@ -2504,6 +2522,7 @@ module.exports = {
         userId: req.user.id,
         couponCodeId: couponCodeDetail.id,
         // bookingId: req.body.bookingId,
+        isUsed: 1,
        }
        let used=await Models.couponCodeUsedModel.findOne({
         where: {
@@ -2514,6 +2533,7 @@ module.exports = {
         if(used){
           return commonHelper.failed(res, Response.failed_msg.couponCodeAlreadyUsed);
         }
+     
        await Models.couponCodeUsedModel.create(objToSave);
        let response = await Models.couponCodeModel.findOne({
         where: {
