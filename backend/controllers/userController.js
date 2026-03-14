@@ -2672,7 +2672,7 @@ module.exports = {
     try {
       await Models.loastItemModel.update(
         {
-          driverConfirm: 1,
+          driverConfirm: req.body.status
         },
         {
           where: {
