@@ -2495,15 +2495,20 @@ module.exports = {
   },
   applyCouponCode:async(req,res)=>{
     try {
+      let couponCodeDetail = await Models.couponCodeModel.findOne({
+        where: {
+          name: req.body.couponCode,
+        },raw:true
+      });
        let objToSave = {
         userId: req.user.id,
-        couponCodeId: req.body.couponCodeId,
+        couponCodeId: couponCodeDetail.id,
         // bookingId: req.body.bookingId,
        }
-       await Models.couponCodeModel.create(objToSave);
+       await Models.couponCodeUsedModel.create(objToSave);
        let response = await Models.couponCodeModel.findOne({
         where: {
-          id: req.body.couponCodeId,
+          id: couponCodeDetail.id,
         },
        })
         return commonHelper.success(
