@@ -2497,7 +2497,7 @@ module.exports = {
     try {
       let couponCodeDetail = await Models.couponCodeModel.findOne({
         where: {
-          name: req.body.couponCode,
+          code: req.body.couponCode,
         },raw:true
       });
        let objToSave = {
