@@ -2501,10 +2501,15 @@ module.exports = {
         // bookingId: req.body.bookingId,
        }
        await Models.couponCodeModel.create(objToSave);
+       let response = await Models.couponCodeModel.findOne({
+        where: {
+          id: req.body.couponCodeId,
+        },
+       })
         return commonHelper.success(
         res,
         Response.success_msg.couponCodeApply,
-        {},
+        response,
       );
     } catch (error) {
        console.log("error", error);
