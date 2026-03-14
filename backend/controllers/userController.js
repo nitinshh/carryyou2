@@ -20,6 +20,7 @@ Models.ratingModel.belongsTo(Models.userModel, { foreignKey: "userId", as: "user
 Models.ratingModel.belongsTo(Models.userModel, { foreignKey: "driverId", as: "driver" })
 Models.loastItemModel.belongsTo(Models.bookingModel, { foreignKey: "bookingId" })
 Models.loastItemModel.belongsTo(Models.userModel, { foreignKey: "userId" })
+Models.bookingModel.hasOne(Models.loastItemModel, { foreignKey: "bookingId" ,as:"lostItem"})
 module.exports = {
   signUp: async (req, res) => {
     try {
@@ -1223,17 +1224,7 @@ module.exports = {
       const { pickUpLatitude, pickUpLongitude, driverId, pets = 0 } = req.body;
 
       const otp = Math.floor(1000 + Math.random() * 9000);
-      let couponCodedetail=await Models.couponCodeModel.findOne({
-        where:{
-          code:req.body.couponCode
-        },raw:true
-      })
-      let applyCode=await Models.couponCodeUsedModel.findOne({
-        where:{
-          couponCodeId: couponCodedetail.id ,
-          userId:req.user.id
-        },raw:true
-      })
+    
   
       // 1️⃣ Create booking
       const booking = await Models.bookingModel.create({
@@ -1254,16 +1245,34 @@ module.exports = {
         otp: otp,
         pets: Number(pets) || 0,
       });
-
-      if(couponCodedetail){
-        await Models.couponCodeUsedModel.update({
-          bookingId:booking.id
-         },{
-          where:{
-            id:applyCode.id
-          }
-        })
+      if (req.body && req.body.couponCode) {
+        let couponCodedetail = await Models.couponCodeModel.findOne({
+          where: {
+            code: req.body.couponCode,
+          },
+          raw: true,
+        });
+        let applyCode = await Models.couponCodeUsedModel.findOne({
+          where: {
+            couponCodeId: couponCodedetail.id,
+            userId: req.user.id,
+          },
+          raw: true,
+        });
+        if (couponCodedetail) {
+          await Models.couponCodeUsedModel.update(
+            {
+              bookingId: booking.id,
+            },
+            {
+              where: {
+                id: applyCode.id,
+              },
+            },
+          );
+        }
       }
+     
       // 2️⃣ Create payment intent
       let userDetail = await Models.userModel.findOne({
         where: { id: req.user.id },
@@ -1502,6 +1511,10 @@ module.exports = {
           {
             model: Models.userModel,
             as: "user",
+          },
+          {
+            model:Models.loastItemModel,
+            as:"lostItem"
           },
           {
             model: Models.userModel,
