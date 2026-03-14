@@ -1228,6 +1228,12 @@ module.exports = {
           code:req.body.couponCode
         },raw:true
       })
+      let applyCode=await Models.couponCodeUsedModel.findOne({
+        where:{
+          couponCodeId: couponCodedetail.id ,
+          userId:req.user.id
+        },raw:true
+      })
   
       // 1️⃣ Create booking
       const booking = await Models.bookingModel.create({
@@ -1254,7 +1260,7 @@ module.exports = {
           bookingId:booking.id
          },{
           where:{
-            id:couponCodedetail.id
+            id:applyCode.id
           }
         })
       }
