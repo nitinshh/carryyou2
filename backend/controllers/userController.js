@@ -2535,8 +2535,16 @@ module.exports = {
         if(used){
           return commonHelper.failed(res, Response.failed_msg.couponCodeAlreadyUsed);
         }
-     
-       await Models.couponCodeUsedModel.create(objToSave);
+       let usedCode=await Models.couponCodeUsedModel.findOne({
+        where: {
+          userId: req.user.id,
+          couponCodeId: couponCodeDetail.id,
+        },raw:true
+       })
+       if(!usedCode){
+         await Models.couponCodeUsedModel.create(objToSave);
+       }
+      //  await Models.couponCodeUsedModel.create(objToSave);
        let response = await Models.couponCodeModel.findOne({
         where: {
           id: couponCodeDetail.id,
