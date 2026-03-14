@@ -2516,18 +2516,20 @@ module.exports = {
       let couponCodeDetail = await Models.couponCodeModel.findOne({
         where: {
           code: req.body.couponCode,
+
         },raw:true
       });
        let objToSave = {
         userId: req.user.id,
         couponCodeId: couponCodeDetail.id,
         // bookingId: req.body.bookingId,
-        isUsed: 1,
+
        }
        let used=await Models.couponCodeUsedModel.findOne({
         where: {
           userId: req.user.id,
           couponCodeId: couponCodeDetail.id,
+          isUsed: 1,
         },raw:true
        })
         if(used){
