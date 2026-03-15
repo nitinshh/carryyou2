@@ -94,7 +94,7 @@ module.exports = function (io) {
   );
   router.post("/stripeWebhook", controller.userController.stripeWebhook(io));
 
-  router.post("/stripeConnect", authentication, controller.userController.addStripeAccount)
+  router.get("/stripeConnect", authentication, controller.userController.addStripeAccount)
   router.get("/stripeConnectUrl", controller.userController.stripeConnectReturnUrl)
   router.post("/withdrawAmount", authentication, controller.userController.withdrawAmount(io))
  
