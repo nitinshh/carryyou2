@@ -2195,7 +2195,7 @@ module.exports = {
           ],
         });
         let userDetail = await Models.userModel.findOne({
-          where: { id: response.userId },
+          where: { id: response.user.id },
           raw: true,
         });
         io.to(userDetail.socketId).emit("loastItemStatusChange", response);
@@ -2228,7 +2228,7 @@ module.exports = {
           ],
         });
         let userDetail = await Models.userModel.findOne({
-          where: { id: response.userId },
+          where: { id: response.user.id },
           raw: true,
         });
         let driverDetail = await Models.userModel.findOne({
