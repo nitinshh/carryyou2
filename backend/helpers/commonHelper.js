@@ -335,4 +335,75 @@ module.exports = {
 
     return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
   },
+  create_stripe_connect_url: async function (
+    stripe,
+    getUser,
+    stripeReturnUrl,
+  ) {
+    try {
+      let account;
+      let accountLink;
+      let hasAccountId = "0";
+      if (getUser?.stripeAccountId == "" || getUser?.stripeAccountId == null) {
+        account = await stripe.accounts.create({
+          country: "US",
+          type: "express",
+          // id: getUser?.id,
+          email: getUser?.email,
+          capabilities: {
+            card_payments: {
+              requested: true,
+            },
+            transfers: {
+              requested: true,
+            },
+          },
+          business_type: "individual",
+          business_profile: {
+            url: stripeReturnUrl,
+          },
+        });
+        accountLink = await stripe.accountLinks.create({
+          account: account?.id,
+          // refresh_url: stripeReturnUrl,
+          // return_url: stripeReturnUrl,
+          refresh_url: "https://stackoverflow.com/reauth",
+          return_url: "https://stackoverflow.com/reauth",
+          type: "account_onboarding",
+        });
+
+        hasAccountId = "0";
+      } else {
+        account = await stripe.accounts.retrieve(getUser?.stripeAccountId);
+        if (account?.charges_enabled == false) {
+          accountLink = await stripe.accountLinks.create({
+            account: account?.id,
+            // refresh_url: stripeReturnUrl,
+            // return_url: stripeReturnUrl,
+            refresh_url: "https://stackoverflow.com/reauth",
+            return_url: "https://stackoverflow.com/reauth",
+            type: "account_onboarding",
+          });
+
+          hasAccountId = "0";
+        } else {
+          hasAccountId = "1";
+        }
+      }
+      await Models.user.update(
+        {
+          stripeAccountId: account?.id,
+          hasAccountId: hasAccountId,
+        },
+        {
+          where: {
+            id: getUser.id,
+          },
+        },
+      );
+      return accountLink;
+    } catch (err) {
+      throw err;
+    }
+  },
 };

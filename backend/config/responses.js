@@ -41,6 +41,8 @@ var success_msg = {
   getLostItemRequest:"Get lost item request successfully",
   couponCodeList:"Coupon Code list fatch successfully",
   couponCodeApply:"Coupon code apply successfully",
+  driverWallet:"Driver wallet amount get successfully",
+  withdrawAmount:"Withdraw amount request done successfully",
 };
 
 var failed_msg = {
@@ -58,6 +60,8 @@ var failed_msg = {
   invalidOtp: "Invalid OTP",
   noLocationAdd:"User location not found",
   couponCodeAlreadyUsed:"Code already used.",
+  stripeAccountNotConnected:"Stripe account not connected",
+  insufficientWalletAmount:"Insufficient wallet amount",
 };
 
 var error_msg = {

@@ -10,7 +10,21 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         defaultValue: 1,
         comment: "0 for admin 1 for user/customers 2 for drivers",
       },
-
+      walletAmount:{ 
+        type: DataTypes.DECIMAL(10, 2), 
+        allowNull: true, 
+        defaultValue: 0.00 
+      },
+      stripeAccountId:{
+        type: DataTypes.STRING(255),
+        allowNull: true,
+        defaultValue: null,
+      },
+      hasAccountId:{
+        type: DataTypes.INTEGER,
+        allowNull: true,
+        defaultValue: 0, // 0 means no stripe account id, 1 means has stripe account id
+      },
       adminApprovalStatus: {
         type: DataTypes.INTEGER,
         allowNull: true,

@@ -11,8 +11,7 @@ const Models = require("../models/index");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const crypto = require("crypto");
 const Response = require("../config/responses.js");
-const { error } = require("console");
-
+const stripeReturnUrl= `http://52.66.122.106:4005//users/stripeConnectUrl`
 Models.bookingModel.belongsTo(Models.userModel, { foreignKey: "userId", as: "user" })
 Models.bookingModel.belongsTo(Models.userModel, { foreignKey: "driverId", as: "driver" })
 Models.bookingModel.belongsTo(Models.typeOfVechicleModel, { foreignKey: "typeOfVehicleId" })
@@ -20,6 +19,7 @@ Models.ratingModel.belongsTo(Models.userModel, { foreignKey: "userId", as: "user
 Models.ratingModel.belongsTo(Models.userModel, { foreignKey: "driverId", as: "driver" })
 Models.loastItemModel.belongsTo(Models.bookingModel, { foreignKey: "bookingId" })
 Models.loastItemModel.belongsTo(Models.userModel, { foreignKey: "userId" })
+Models.loastItemModel.belongsTo(Models.userModel, { foreignKey: "driverId" ,as:"driver"})
 Models.bookingModel.hasOne(Models.loastItemModel, { foreignKey: "bookingId" ,as:"lostItem"})
 module.exports = {
   signUp: async (req, res) => {
@@ -2017,6 +2017,15 @@ module.exports = {
           where: { id: response.userId },
           raw: true,
         });
+        let driverDetail = await Models.userModel.findOne({
+          where: { id: response.driverId },
+          raw: true,
+        });
+        await Models.userModel.update({
+          walletAmount:parseInt(bookingDetail.amount) + parseInt(driverDetail.walletAmount)
+         }, {
+          where:{id:bookingDetail.driverId}
+        })
         io.to(userDetail.socketId).emit("bookingStatusChange", response);
         return commonHelper.success(
           res,
@@ -2117,6 +2126,147 @@ module.exports = {
           response,
         );
       }
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+  itemLoastStatusChange:(io)=>async(req,res)=>{
+       try {
+      // 1 start, 2-> i am hear, 3-> completed
+      if (req.body.startNavigationStatus == 1) {
+        await Models.loastItemModel.update(
+          { startNavigationStatus: 1 },
+          { where: {bookingId: req.body.bookingId } },
+        );
+        let response = await Models.loastItemModel.findOne({
+          where: {
+            bookingId: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+            {
+              model: Models.bookingModel,
+            }
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.userId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit("loastItemStatusChange", response);
+        return commonHelper.success(
+          res,
+          Response.success_msg.rideStart,
+          response,
+        );
+      } else if (req.body.startNavigationStatus == 2) {
+        await Models.loastItemModel.update(
+          { startNavigationStatus: 2 },
+          { where: { bookingId: req.body.bookingId } },
+        );
+        let response = await Models.loastItemModel.findOne({
+          where: {
+            bookingId: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+            {
+              model: Models.bookingModel,
+            }
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.userId },
+          raw: true,
+        });
+        io.to(userDetail.socketId).emit("loastItemStatusChange", response);
+        return commonHelper.success(
+          res,
+          Response.success_msg.bookingReject,
+          response,
+        );
+      } else if (req.body.startNavigationStatus == 3) {
+        await Models.loastItemModel.update(
+          { startNavigationStatus: 3},
+          { where: { bookingId: req.body.bookingId } },
+        );
+        let response = await Models.loastItemModel.findOne({
+          where: {
+            bookingId: req.body.bookingId,
+          },
+          include: [
+            {
+              model: Models.userModel,
+              as: "user",
+            },
+            {
+              model: Models.userModel,
+              as: "driver",
+            },
+            {
+              model: Models.bookingModel,
+            }
+          ],
+        });
+        let userDetail = await Models.userModel.findOne({
+          where: { id: response.userId },
+          raw: true,
+        });
+        let driverDetail = await Models.userModel.findOne({
+          where: { id: response.driverId },
+          raw: true,
+        });
+        await Models.userModel.update({
+          walletAmount:parseInt(response.amount) + parseInt(driverDetail.walletAmount)
+         }, {
+          where:{id:bookingDetail.driverId}
+        })
+        io.to(userDetail.socketId).emit("loastItemStatusChange", response);
+        return commonHelper.success(
+          res,
+          Response.success_msg.bookingComplete,
+          response,
+        );
+      } 
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
+  
+  driverWallet:async(req,res)=>{
+    try {
+      let response=await Models.userModel.findOne({
+        where:{id:req.user.id},
+      })
+      return commonHelper.success(
+        res,
+        Response.success_msg.driverWallet,
+        response,
+      );
     } catch (error) {
       console.log("error", error);
       return commonHelper.error(
@@ -2498,6 +2648,135 @@ module.exports = {
       console.log("Stripe Webhook Error:", error);
       return res.status(500).send("Webhook error");
     }
+  },
+  addStripeAccount: async (req, res) => {
+    try {
+      const finduser = req.user;
+      const accountLink = await commonHelper.create_stripe_connect_url(
+        stripe,
+        finduser,
+        stripeReturnUrl + `?state=${finduser.id}`
+      );
+      return commonHelper.success(
+        res,
+        "Account Added link send Successfully",
+        accountLink && accountLink.url
+      );
+    } catch (error) {
+      console.log(error);
+           return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );
+    }
+  },
+  stripeConnectReturnUrl: async (req, res) => {
+    try {
+      let hasAccountId;
+      let state = req.query.state;
+      const userData = await Models.userModel.findOne({ where: { id: state },raw:true });
+      const responseData = await stripe.accounts.retrieve(
+        userData.stripeAccountId
+      );
+      if (responseData?.charges_enabled == false) {
+        hasAccountId = 0;
+      } else {
+        hasAccountId = 1;
+      }
+      const updateUser = await Models.userModel.update(
+        {
+          stripeAccountId: responseData?.id,
+          hasAccountId: hasAccountId,
+        },
+        {
+          where: {
+            id: state,
+          },
+        }
+      );
+      let msg = "ACCOUNT CONNECTED SUCCESSFULLY";
+      return commonHelper.success(res, msg, { status: 0 });
+    } catch (error) {
+      // throw err;
+           return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );
+    }
+  },
+
+  withdrawAmount:(io)=>async(req,res)=>{
+   try {
+     let checkAccount=await Models.userModel.findOne({
+      where:{id:req.user.id},
+      raw:true
+     }) 
+    const amountInCents = Math.round(parseInt(req.body.amount) * 100);
+
+      if(!checkAccount.stripeAccountId){
+        return commonHelper.failed(res, Response.failed_msg.stripeAccountNotConnected);
+      }
+      if(parseInt(checkAccount.walletAmount) < parseInt(req.body.amount)){
+        return commonHelper.failed(res, Response.failed_msg.insufficientWalletAmount);
+      }
+      let transfer = null;
+       const balance = await stripe.balance.retrieve();
+       const available = balance.available.find(b => b.currency === 'usd');
+
+          if (!available || available.amount < amountInCents) {
+            return commonHelper.failed(res, "Insufficient funds in platform account.");
+          }
+
+          // Check Destination Account Capabilities
+          const account = await stripe.accounts.retrieve(req.user.stripeAccountId);
+          if (account.capabilities.transfers !== 'active') {
+            return commonHelper.failed(res, "Your Stripe account is not fully verified to receive transfers. Please check your Stripe Dashboard.");
+          }
+
+          transfer = await stripe.transfers.create({
+            amount: amountInCents, // cents
+            currency: "usd",
+            destination: req.user.stripeAccountId,
+          });
+          if (transfer && transfer.id) {
+          await Models.withdrawalModel.create({
+            userId: req.user.id,
+            amount: parseInt(req.body.amount),
+            paymentStatus: 1, // completed immediately
+          });
+          let adminDetail=await Models.userModel.findOne({
+            where:{role:0},
+            raw:true
+          })
+          const objToSend = {
+            senderId: String(adminDetail.id),
+            receiverId: String(req.user.id),
+            title: `Your withdrewal successful`,
+            message: `You withdrew $${withdrawAmount} from your wallet successfully.`,
+          };
+          if (req.user && req.user.deviceToken) {
+            // await commonHelper.sendFirebasePush(
+            //   req.user.deviceToken,
+            //   objToSend,
+            //   "2"
+            // );
+          }
+        }
+        return commonHelper.success(
+          res,
+          Response.success_msg.withdrawAmount,
+          response,
+        );
+   } catch (error) {
+    console.log("error",error)
+         return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );
+   }
   },
   couponCodeList: async (req, res) => {
     try {

@@ -30,7 +30,8 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
       },
       bookingId: {
         type: Sequelize.UUID,
-        allowNull: false,
+        allowNull: true,
+        defaultValue: null,
         references: {
           model: "bookings", // name of Target model
           key: "id", // key in Target model that we"re referencing
@@ -42,17 +43,6 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         type: DataTypes.STRING(10),
         allowNull: true,
         defaultValue: "USD",
-      },
-      bookingId: {
-        type: Sequelize.UUID,
-        allowNull: true,
-        defaultValue: null,
-        references: {
-          model: "bookings",
-          key: "id",
-        },
-        onUpdate: "CASCADE",
-        onDelete: "CASCADE",
       },
       amount: {
         type: DataTypes.DOUBLE,

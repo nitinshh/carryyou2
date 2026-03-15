@@ -1340,6 +1340,65 @@
         }
       }
     },
+    "/users/itemLoastStatusChange": {
+      "post": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-itemLoastStatusChange-post",
+        "tags": ["Application User"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "bookingId",
+            "in": "formData",
+            "description": "Enter the bookingId",
+            "required": false,
+            "type": "string",
+            "value": ""
+          },
+          {
+            "name": "startNavigationStatus",
+            "in": "formData",
+            "description": "Enter the status",
+            "required": true,
+            "enum": [1,2,3],
+            "type": "number",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "booking status change successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+   "/users/driverWallet": {
+      "get": {
+        "x-swagger-router-controller": "middleware-name1",
+        "operationId": "users-driverWallet-post",
+        "tags": ["Application User"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "200": { "description": "Rating successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    }, 
     "/users/bookingDetail": {
       "get": {
         "x-swagger-router-controller": "middleware-name1",
@@ -1522,6 +1581,56 @@
         }
       }
     },
+    "/users/stripeConnect": {
+      "get": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-stripeConnect-post",
+        "tags": ["Application User Stripe"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    }, 
+    "/users/withdrawAmount": {
+      "post": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-withdrawAmount-post",
+        "tags": ["Application User Stripe"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "amount",
+            "in": "formData",
+            "description": "Enter the amount",
+            "required": false,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },       
     "/users/submitLostItemRequestDriver": {
       "post": {
         "x-swagger-router-paymentIntent": "middleware-name1",

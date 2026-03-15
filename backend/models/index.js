@@ -16,4 +16,5 @@ module.exports = {
   ratingModel:require("./ratingModel")(Sequelize, sequelize, Sequelize.DataTypes),
   loastItemModel:require("./lostItemModel")(Sequelize, sequelize, Sequelize.DataTypes),
   couponCodeUsedModel:require("./couponCodeUsedModel")(Sequelize, sequelize, Sequelize.DataTypes),
+  withdrawalModel:require("./withdrawalModel")(Sequelize, sequelize, Sequelize.DataTypes),
 };

@@ -76,6 +76,8 @@ module.exports = function (io) {
   router.get("/bookingList",authentication,controller.userController.bookingList)
   router.post("/bookingAcceptReject",authentication,controller.userController.bookingAcceptReject(io))
   router.post("/bookingStatusChange",authentication,controller.userController.bookingStatusChange(io))
+  router.post("/itemLoastStatusChange",authentication,controller.userController.itemLoastStatusChange(io))
+  router.get("/driverWallet",authentication,controller.userController.driverWallet)
   router.post("/ratingDriver",authentication,controller.userController.ratingDriver)
   router.get("/bookingDetail",authentication,controller.userController.bookingDetail)
   router.get("/bookingJobHistory",authentication,controller.userController.bookingJobHistory)
@@ -91,6 +93,10 @@ module.exports = function (io) {
     controller.userController.stripeIntent
   );
   router.post("/stripeWebhook", controller.userController.stripeWebhook(io));
+
+  router.post("/stripeConnect", authentication, controller.userController.addStripeAccount)
+  router.get("/stripeConnectUrl", controller.userController.stripeConnectReturnUrl)
+  router.post("/withdrawAmount", authentication, controller.userController.withdrawAmount(io))
  
   router.get("/couponCodeList",authentication,controller.userController.couponCodeList)
   router.post("/applyCouponCode",authentication,controller.userController.applyCouponCode)
