@@ -2235,6 +2235,10 @@ module.exports = {
           where: { id: response.driverId },
           raw: true,
         });
+        let bookingDetail=await Models.bookingModel.findOne({
+          where:{id:req.body.bookingId},
+          raw:true
+        })
         await Models.userModel.update({
           walletAmount:parseInt(response.amount) + parseInt(driverDetail.walletAmount)
          }, {
