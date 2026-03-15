@@ -8,6 +8,7 @@ const commonHelper = require("../helpers/commonHelper.js");
 const helper = require("../helpers/validation.js");
 const Models = require("../models/index");
 const Response = require("../config/responses.js");
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 
 module.exports = {
@@ -73,6 +74,90 @@ module.exports = {
     }
   },
 
+  signUp: async (req, res) => {
+    try {
+      const schema = Joi.object().keys({
+        fullName: Joi.string().optional(),
+        email: Joi.string().email().optional(),
+        countryCode: Joi.string().optional(),
+        phoneNumber: Joi.string().optional(),
+        password: Joi.string().optional(),
+        role: Joi.number().valid(1, 2).required(),
+
+      });
+
+      let payload = await helper.validationJoi(req.body, schema);
+
+      const { email, password, role } = payload;
+
+      const user = await Models.userModel.findOne({
+        where: { email: email, role: role },
+        raw: true,
+      });
+
+      if (user && role == user.role) {
+        return commonHelper.failed(res, Response.failed_msg.userWithEmail);
+      }
+
+      /* =======================
+         STRIPE CUSTOMER
+      ======================== */
+      let customerId = null;
+      if (payload.email) {
+        const customer = await stripe.customers.create({
+          description: "User Profile",
+          email: payload.email,
+        });
+        customerId = customer.id;
+      }
+
+      /* =======================
+         PROFILE IMAGE
+      ======================== */
+      let image = null;
+      if (req.files && req.files.image) {
+        image = await commonHelper.fileUpload(
+          req.files.image,
+          "images",
+        );
+      }
+
+      /* =======================
+         OTP SETUP (COMMENTED)
+      ======================== */
+
+      // const otp = "1111"; // static for now
+
+      let objToSave = {
+        fullName: payload.fullName,
+        email: payload.email,
+        role: payload.role,
+        password: await commonHelper.bcryptData(
+          payload.password,
+          process.env.SALT,
+        ),
+        countryCode: payload.countryCode,
+        phoneNumber: payload.phoneNumber,
+        profilePicture: image,
+        customerId: customerId,
+      };
+
+      let newUser = await Models.userModel.create(objToSave);
+
+      return commonHelper.success(
+        res,
+        Response.success_msg.otpSend,
+        newUser,
+      );
+    } catch (error) {
+      console.error("Error during signup:", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.intSerErr,
+        error.message,
+      );
+    }
+  },
   logOut: async (req, res) => {
     try {
       const schema = Joi.object().keys({
@@ -97,17 +182,18 @@ module.exports = {
 
   updateProfile: async (req, res) => {
     try {
+      console.log("req.body",req.body)
+      // return
       let image = null;
-
       // Upload image if provided
       if (req.files && req.files.image) {
         image = await commonHelper.fileUpload(req.files.image, "images");
       }
 
-      let fullName = req.body.name || "";
-
+      let fullName = req.body.fullName || "";
+      let userDetail=await Models.userModel.findOne({where:{id:req.body.userId},raw:true})
       // Preserve existing profile picture
-      let profilePicture = req.user.profilePicture;
+      let profilePicture = userDetail.profilePicture;
 
       if (req.body.removeImage === "true") {
         profilePicture = null;
@@ -125,11 +211,11 @@ module.exports = {
       };
 
       await Models.userModel.update(objToSave, {
-        where: { id: req.user.id },
+        where: { id: req.body.userId },
       });
 
       const updatedUser = await Models.userModel.findOne({
-        where: { id: req.user.id },
+        where: { id: req.body.userId },
         attributes: { exclude: ["password"] },
       });
 
@@ -422,7 +508,6 @@ module.exports = {
           "User not found."
         );
       }
-
       return res.status(200).json({
         success: true,
         data: user,

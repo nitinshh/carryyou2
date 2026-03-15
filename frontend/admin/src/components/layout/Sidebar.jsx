@@ -61,13 +61,13 @@ const Sidebar = ({ sidebarOpen, toggleSidebar }) => {
             },
             {
               to: "/users_listing",
-              routes: ["/users_listing", "/users_edit", "/users_view"],
+              routes: ["/users_listing", "/users/add", "/users/edit", "/users_view"],
               icon: <Users />,
               label: "Users",
             },
             {
               to: "/driver_listing",
-              routes: ["/driver_listing", "/driver_edit", "/driver_view"],
+              routes: ["/driver_listing", "/driver/add", "/driver/edit", "/driver_view"],
               icon: <Car />,
               label: "Driver",
             },

@@ -5,7 +5,8 @@ const {authentication} = require('../middlewares/authentication');
 
 module.exports=function(){
      router.post('/login', controller.frontendController.login);
-     // router.use(authentication)
+     router.post('/signUp', controller.frontendController.signUp);
+     router.use(authentication)
      router.post('/logOut',controller.frontendController.logOut);
      router.put("/updateProfile",controller.frontendController.updateProfile)
      router.put("/changePassword",controller.frontendController.changePassword)

@@ -114,16 +114,6 @@ const UserView = () => {
             value={`${list.countryCode || ""} ${list.phoneNumber || ""}`}
           />
 
-          <Field label="BTC Wallet" value={list.btcWallet} />
-          <Field label="BTC Wallet Address" value={list.btcWalletAddress} />
-          <Field label="Hash Code" value={list.hashCode} />
-
-          <Field label="Current Level" value={list.level} />
-          <Field label="Invited Members" value={list.numberOfInvitedMembers} />
-
-          <Field label="Invite Link" value={list.inviteLink} />
-
-          <Field label="In Queue" value={list.isInQueue === 1 ? "Yes" : "No"} />
         </div>
       )}
     </div>

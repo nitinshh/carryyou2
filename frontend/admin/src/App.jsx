@@ -11,10 +11,10 @@ import Profile from "./components/Profile";
 import Resetpassword from "./components/Resetpassword";
 import UserList from "./pages/User/UserList";
 import UserView from "./pages/User/UserView";
-import UserEdit from "./pages/User/UserEdit";
+import UserAddEdit from "./pages/User/UserAddEdit";
 import DriverList from "./pages/Driver/DriverList"
 import DriverView from  "./pages/Driver/DriverView"
-import DriverEdit from "./pages/Driver/DriverEdit";
+import DriverAddEdit from "./pages/Driver/DriverAddEdit";
 import AboutUs from "./pages/CMS/AboutUs";
 import PrivacyPolicy from "./pages/CMS/PrivacyPolicy";
 import TermsAndCondition from "./pages/CMS/TermsAndCondition";
@@ -62,11 +62,14 @@ function App() {
             <Route path="/profile" element={<Profile />} />
             <Route path="/resetPassword" element={<Resetpassword />} />
             <Route path="/users_listing" element={<UserList />} />
-            <Route path="/users_edit/:userId" element={<UserEdit />} />
+            <Route path="/users/add" element={<UserAddEdit />} />
+            <Route path="/users/edit/:userId" element={<UserAddEdit />} />
             <Route path="/users_view/:userId" element={<UserView />} />
 
             <Route path="/driver_listing" element={<DriverList />} />
-            <Route path="/driver_edit/:userId" element={<DriverEdit />} />
+            {/* <Route path="/driver_edit/:userId" element={<DriverEdit />} /> */}
+            <Route path="/driver/add"          element={<DriverAddEdit />} />
+            <Route path="/driver/edit/:userId" element={<DriverAddEdit />} />
             <Route path="/driver_view/:userId" element={<DriverView />} />
 
             <Route path="/typeOfVechile_listing" element={<TypeOfVechileList />} />

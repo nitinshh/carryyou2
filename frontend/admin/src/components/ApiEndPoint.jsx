@@ -3,12 +3,10 @@
 
 // server base url
 const API_BASE_URL = "http://52.66.122.106:4005";
-
-// const API_BASE_URL = "http://35.154.149.218:4005";
-
  
 const ApiEndPoint = {
   baseUrl:`${API_BASE_URL}`,
+  createUser: `${API_BASE_URL}/api/signUp`,
   LOGIN: `${API_BASE_URL}/api/login`,
   LOGOUT: `${API_BASE_URL}/api/logOut`,
   USER_LIST:`${API_BASE_URL}/api/userList`,
