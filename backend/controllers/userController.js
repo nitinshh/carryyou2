@@ -2743,7 +2743,7 @@ module.exports = {
           // Check Destination Account Capabilities
           const account = await stripe.accounts.retrieve(req.user.stripeAccountId);
           if (account.capabilities.transfers !== 'active') {
-            return commonHelper.failed(res, "Your Stripe account is not fully verified to receive transfers. Please check your Stripe Dashboard.");
+            return commonHelper.failed(res, "Your Stripe account is not fully verified to receive transfers.");
           }
 
           transfer = await stripe.transfers.create({
