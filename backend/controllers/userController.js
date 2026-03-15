@@ -2876,6 +2876,16 @@ module.exports = {
         countryCode: req.body.countryCode,
         phoneNumber: req.body.phoneNumber,
       };
+      let alreadyHaveRequest=await Models.loastItemModel.findOne({
+        where:{
+          bookingId:req.body.bookingId,
+          // driverId:req.body.driverId,
+          userId:req.user.id
+        },raw:true
+      })
+      if(alreadyHaveRequest){
+        return commonHelper.failed(res, Response.failed_msg.alreadyHaveLostItemRequest);
+      }
       let response = await Models.loastItemModel.create(objToSave);
       return commonHelper.success(
         res,

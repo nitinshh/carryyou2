@@ -62,6 +62,7 @@ var failed_msg = {
   couponCodeAlreadyUsed:"Code already used.",
   stripeAccountNotConnected:"Stripe account not connected",
   insufficientWalletAmount:"Insufficient wallet amount",
+  alreadyHaveLostItemRequest:"Already have a lost item request for this booking",
 };
 
 var error_msg = {
