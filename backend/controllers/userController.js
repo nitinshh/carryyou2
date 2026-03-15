@@ -2720,7 +2720,7 @@ module.exports = {
     const amountInCents = Math.round(parseInt(req.body.amount) * 100);
 
       if(!checkAccount.stripeAccountId){
-        return commonHelper.failed(res, Response.failed_msg.stripeAccountNotConnected);
+        return commonHelper.success(res, Response.failed_msg.stripeAccountNotConnected,false);
       }
       if(parseInt(checkAccount.walletAmount) < parseInt(req.body.amount)){
         return commonHelper.failed(res, Response.failed_msg.insufficientWalletAmount);
