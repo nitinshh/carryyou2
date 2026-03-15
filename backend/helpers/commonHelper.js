@@ -4,6 +4,7 @@ const { v4: uuid } = require("uuid");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
+const Models = require("../models/index");
 const emailTamplate = require("./emailTemplate/forgetPassword");
 var admin = require("firebase-admin");
 // var serviceAccount = require("");
@@ -359,16 +360,16 @@ module.exports = {
             },
           },
           business_type: "individual",
-          business_profile: {
-            url: stripeReturnUrl,
-          },
+          // business_profile: {
+          //   url: stripeReturnUrl,
+          // },
         });
         accountLink = await stripe.accountLinks.create({
           account: account?.id,
-          // refresh_url: stripeReturnUrl,
-          // return_url: stripeReturnUrl,
-          refresh_url: "https://stackoverflow.com/reauth",
-          return_url: "https://stackoverflow.com/reauth",
+          refresh_url: stripeReturnUrl,
+          return_url: stripeReturnUrl,
+          // refresh_url: "https://stackoverflow.com/reauth",
+          // return_url: "https://stackoverflow.com/reauth",
           type: "account_onboarding",
         });
 
@@ -378,10 +379,10 @@ module.exports = {
         if (account?.charges_enabled == false) {
           accountLink = await stripe.accountLinks.create({
             account: account?.id,
-            // refresh_url: stripeReturnUrl,
-            // return_url: stripeReturnUrl,
-            refresh_url: "https://stackoverflow.com/reauth",
-            return_url: "https://stackoverflow.com/reauth",
+            refresh_url: stripeReturnUrl,
+            return_url: stripeReturnUrl,
+            // refresh_url: "https://stackoverflow.com/reauth",
+            // return_url: "https://stackoverflow.com/reauth",
             type: "account_onboarding",
           });
 
@@ -390,7 +391,7 @@ module.exports = {
           hasAccountId = "1";
         }
       }
-      await Models.user.update(
+      await Models.userModel.update(
         {
           stripeAccountId: account?.id,
           hasAccountId: hasAccountId,

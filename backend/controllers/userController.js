@@ -11,7 +11,8 @@ const Models = require("../models/index");
 const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 const crypto = require("crypto");
 const Response = require("../config/responses.js");
-const stripeReturnUrl= `http://52.66.122.106:4005//users/stripeConnectUrl`
+const stripeReturnUrl= `http://52.66.122.106:4005/users/stripeConnectUrl`
+// const stripeReturnUrl= `http://localhost:4005/users/stripeConnectUrl`
 Models.bookingModel.belongsTo(Models.userModel, { foreignKey: "userId", as: "user" })
 Models.bookingModel.belongsTo(Models.userModel, { foreignKey: "driverId", as: "driver" })
 Models.bookingModel.belongsTo(Models.typeOfVechicleModel, { foreignKey: "typeOfVehicleId" })
@@ -2656,6 +2657,8 @@ module.exports = {
   addStripeAccount: async (req, res) => {
     try {
       const finduser = req.user;
+      console.log("find",finduser)
+      // return
       const accountLink = await commonHelper.create_stripe_connect_url(
         stripe,
         finduser,
