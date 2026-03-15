@@ -3085,7 +3085,12 @@ module.exports = {
         transactionId: paymentIntent.id,
       };
       await Models.loastItemModel.update(
-        { amount: req.body.amount },
+        { 
+          amount: req.body.amount ,
+          dropLatitude:req.body.dropLatitude,
+          dropLongitude:req.body.dropLongitude,
+         dropLocation:req.body.dropLocation
+        },
         { where: { id: req.body.lostItemId } },
       );
       await Models.transactionModel.create({
