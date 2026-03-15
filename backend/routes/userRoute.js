@@ -105,6 +105,7 @@ module.exports = function (io) {
   router.post("/driverFoundItemConfimByUser",authentication,controller.userController.driverFoundItemConfimByUser)
   router.post("/driverHaveItemConfimByDriver",authentication,controller.userController.driverHaveItemConfimByDriver)
   router.get("/getLostItemRequest",authentication,controller.userController.getLostItemRequest)
+  router.get("/getLostItemRequestDetail",authentication,controller.userController.getLostItemRequestDetail)
   router.post("/payAmountStripeForLostItem",authentication,controller.userController.payAmountStripeForLostItem(io))
   router.post("/webHookFrontEndLostItem",authentication,controller.userController.webHookFrontEndLostItem(io))
   return router

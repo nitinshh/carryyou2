@@ -2162,7 +2162,7 @@ module.exports = {
           ],
         });
         let userDetail = await Models.userModel.findOne({
-          where: { id: response.userId },
+          where: { id: response.user.id },
           raw: true,
         });
         io.to(userDetail.socketId).emit("loastItemStatusChange", response);
@@ -3007,6 +3007,36 @@ module.exports = {
       );
     }
   },
+  getLostItemRequestDetail: async (req, res) => {
+    try {
+      let response = await Models.loastItemModel.findOne({
+        where: {
+          id: req.query.lostItemId,
+        },
+        include: [
+          {
+            model: Models.bookingModel,
+          },
+          {
+            model: Models.userModel,
+          },
+        ],
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.getLostItemRequest,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );
+    }
+  },
+  
   payAmountStripeForLostItem: (io) => async (req, res) => {
     try {
       let userDetail = await Models.userModel.findOne({

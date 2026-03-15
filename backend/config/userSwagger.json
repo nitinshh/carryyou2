@@ -1800,6 +1800,35 @@
         }
       }
     },
+    "/users/getLostItemRequestDetail": {
+      "get": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-getLostItemRequestDetail-get",
+        "tags": ["Application User Lost Item"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "lostItemId",
+            "in": "query",
+            "description": "Enter the lostItemId",
+            "required": true,
+            "type": "string",
+            "value": ""
+          }
+        ],
+        "responses": {
+          "200": { "description": "Signup successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
     "/users/payAmountStripeForLostItem": {
       "post": {
         "x-swagger-router-paymentIntent": "middleware-name1",
