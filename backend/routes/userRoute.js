@@ -108,6 +108,9 @@ module.exports = function (io) {
   router.get("/getLostItemRequestDetail",authentication,controller.userController.getLostItemRequestDetail)
   router.post("/payAmountStripeForLostItem",authentication,controller.userController.payAmountStripeForLostItem(io))
   router.post("/webHookFrontEndLostItem",authentication,controller.userController.webHookFrontEndLostItem(io))
+
+  router.post("/notificationOnOff", authentication, controller.userController.notificationOnOff)
+  router.get("/notificationList", authentication, controller.userController.notificationList)
   return router
 }
 

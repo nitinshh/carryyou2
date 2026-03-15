@@ -22,6 +22,7 @@ Models.loastItemModel.belongsTo(Models.bookingModel, { foreignKey: "bookingId" }
 Models.loastItemModel.belongsTo(Models.userModel, { foreignKey: "userId" })
 Models.loastItemModel.belongsTo(Models.userModel, { foreignKey: "driverId" ,as:"driver"})
 Models.bookingModel.hasOne(Models.loastItemModel, { foreignKey: "bookingId" ,as:"lostItem"})
+Models.notificationModel.belongsTo(Models.userModel, { foreignKey: "userId", as: "user" })
 module.exports = {
   signUp: async (req, res) => {
     try {
@@ -3173,4 +3174,55 @@ module.exports = {
       );
     }
   },
+
+  notificationOnOff:async(req,res)=>{
+    try {
+      await Models.userModel.update(
+        {
+          notificationStatus: req.body.isNotificationOnOff
+        },
+        { where: { id: req.user.id } },
+      );
+      let response = await Models.userModel.findOne({
+        where: { id: req.user.id },
+      });
+      return commonHelper.success(
+        res,
+        Response.success_msg.notificationOnOff,
+        response,
+      );
+    } catch (error) {
+      console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      );
+    }
+  },
+
+  notificationList:async(req,res)=>{
+    try {
+      let response=await Models.notificationModel.findAll({
+        where:{recevierId:req.user.id},
+        include:[{
+          model: Models.userModel,
+          as: "user" 
+        }],
+        order:[['createdAt','DESC']]
+      })
+      return commonHelper.success(
+        res,
+        Response.success_msg.notificationList,
+        response,
+      );
+    } catch (error) {
+       console.log("error", error);
+      return commonHelper.error(
+        res,
+        Response.error_msg.internalServerError,
+        error.message,
+      ); 
+    }
+  }
 };

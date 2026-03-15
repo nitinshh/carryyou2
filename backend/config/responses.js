@@ -43,6 +43,8 @@ var success_msg = {
   couponCodeApply:"Coupon code apply successfully",
   driverWallet:"Driver wallet amount get successfully",
   withdrawAmount:"Withdraw amount request done successfully",
+  notificationOnOff:"Notification status change successfully",
+  notificationList:"Notification list get successfully",
 };
 
 var failed_msg = {

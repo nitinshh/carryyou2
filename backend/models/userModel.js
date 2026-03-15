@@ -10,6 +10,11 @@ module.exports = (Sequelize, sequelize, DataTypes) => {
         defaultValue: 1,
         comment: "0 for admin 1 for user/customers 2 for drivers",
       },
+      notificationStatus:{
+        type:DataTypes.INTEGER,
+        allowNull:true,
+        defaultValue:1, // 0 means off, 1 means on
+      },
       walletAmount:{ 
         type: DataTypes.DECIMAL(10, 2), 
         allowNull: true, 

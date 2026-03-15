@@ -1960,7 +1960,65 @@
           "500": { "description": "Internal server error" }
         }
       }
-    }                
+    },
+    "/users/notificationOnOff": {
+      "post": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-notificationOnOff-post",
+        "tags": ["Application User Notification"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "isNotificationOnOff",
+            "in": "formData",
+            "description": "Enter the isNotificationOnOff",
+            "required": false,
+            "type": "number",
+            "value": ""
+          },
+          {
+            "name": "value",
+            "in": "formData",
+            "description": "Enter the value",
+            "required": false,
+            "type": "number",
+            "value": 0
+          }
+        ],
+        "responses": {
+          "200": { "description": "Frontend webhook lost item successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    },
+    "/users/notificationList": {
+      "get": {
+        "x-swagger-router-paymentIntent": "middleware-name1",
+        "operationId": "users-notificationList-get",
+        "tags": ["Application User Notification"],
+        "description": "",
+        "security": [
+          {
+            "Bearer": []
+          }
+        ],
+        "parameters": [
+        ],
+        "responses": {
+          "200": { "description": "Frontend webhook lost item successful" },
+          "400": { "description": "Validation error" },
+          "409": { "description": "User already exists" },
+          "500": { "description": "Internal server error" }
+        }
+      }
+    }                      
   },
   "definitions": {}
 }
