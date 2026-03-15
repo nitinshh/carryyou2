@@ -3034,6 +3034,10 @@ module.exports = {
           {
             model: Models.userModel,
           },
+           {
+            model: Models.userModel,
+            as:"driver"
+          },
         ],
       });
       return commonHelper.success(
